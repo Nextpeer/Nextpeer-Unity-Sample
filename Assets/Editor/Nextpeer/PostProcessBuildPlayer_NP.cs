@@ -8,7 +8,7 @@ using System.Collections;
 
 public static class PostProcessBuildPlayer_NP
 {
-	private static string FacebookSSOURLScheme = "fb192019987525706comnextpeerpenelopeexampleccga";
+	private static string FacebookSSOURLScheme = "";
 	
 	[PostProcessBuild]
     public static void OnPostProcessBuild(BuildTarget target, string path)
