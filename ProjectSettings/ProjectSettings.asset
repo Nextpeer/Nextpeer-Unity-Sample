@@ -71,7 +71,7 @@ PlayerSettings:
     Others: 1
   iPhoneBundleIdentifier: com.nextpeer.penelope.example
   productGUID: a6856e47b04fc4c36858bd02c38f937f
-  iPhoneBundleVersion: 2.3.4
+  iPhoneBundleVersion: 2.3.6
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 8
   AndroidPreferredInstallLocation: 1

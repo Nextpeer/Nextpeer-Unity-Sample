@@ -18815,7 +18815,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_EditorClassIdentifier: 
-  m_EditorClassIdentifier: 
 --- !u!1 &39921459
 GameObject:
   m_ObjectHideFlags: 0
@@ -18853,7 +18852,6 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: eda6f0d16c9f947ed82898599506bbe4, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: 
   m_EditorClassIdentifier: 
   m_EditorClassIdentifier: 
 --- !u!1 &115082351
