@@ -35,24 +35,14 @@ public class ScoreKeeper:MonoBehaviour
     private NextpeerGameManager NPManager = NextpeerGameManager.GetInstance();
     private int LastManStandingTime = 30;
 
-    private Rect ForfeitButton;
-
-    public void Awake()
-    {
-        ForfeitButton = new Rect(Screen.width - 100,
-                                 0, 100, 60);
-    }
-
     public void Start()
     {
         Debug.Log("start");
 
         if (NPManager.TournamentType == GameType.LastManStanding)
             gameLength = LastManStandingTime;
-		else if (NPManager.TournamentType != GameType.Solo)
-            gameLength = Nextpeer.TimeLeftInTournament().Seconds;
         else
-            gameLength = 10;
+            gameLength = 20;
 
         timeLeft = gameLength;
         timeSinceLastPlay = Time.time;
@@ -113,11 +103,8 @@ public class ScoreKeeper:MonoBehaviour
 
 	    // Alert other components on this GameObject that the game has ended
 	    SendMessage( "OnEndGame" );
-
-        if (NPManager.TournamentType == GameType.LastManStanding)
-        {
-            Nextpeer.ReportControlledTournamentOverWithScore((uint)TotalScore);
-        }
+        Nextpeer.ReportControlledTournamentOverWithScore((uint)TotalScore);
+        
     }
 
     public void Pickup(ParticlePickup pickup)
