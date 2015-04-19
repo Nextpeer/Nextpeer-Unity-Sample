@@ -10,8 +10,6 @@
 #import "Nextpeer/Nextpeer.h"
 #include "UnityNextPeerDelegate.h"
 #include "UnityTournamentDelegate.h"
-#include "UnityNotificationDelegate.h"
-#include "UnityCurrencyDelegate.h"
 
 @interface NextpeerAppController :
 #ifdef UNITY_4_2_APP_CONTORLLER_STYLE
@@ -24,8 +22,6 @@ AppController
 // DelegatesHandler accessor for bindings
 + (UnityNextpeerDelegate*) GetNextpeerDelegate;
 + (UnityTournamentDelegate*) GetTournamentDelegate;
-+ (UnityNotificationDelegate*) GetNotificationDelegate;
-+ (UnityCurrencyDelegate*) GetCurrencyDelegate;
 
 +(void)MarkNextpeerAsInitialised;
 

@@ -10,12 +10,10 @@ public interface INextpeer
 	string ReleaseVersionString();
 	void Init(string GameKey, NPGameSettings? Settings=null);
 	void LaunchDashboard();
-	void DismissDashboard();
 	bool IsCurrentlyInTournament();
 	void ReportScoreForCurrentTournament(UInt32 score);
 	void ReportControlledTournamentOverWithScore(UInt32 score);
 	void ReportForfeitForCurrentTournament();
-	TimeSpan TimeLeftInTournament();
 	void PushDataToOtherPlayers(byte[] data);
 	void UnreliablePushDataToOtherPlayers(byte[] data);
 	void AddWhitelistTournament(string tournamentId);
@@ -24,18 +22,19 @@ public interface INextpeer
 	void AddBlacklistTournament(string tournamentId);
 	void RemoveBlacklistTournament(string tournamentId);
 	void ClearTournamentBlacklist();
-	void PostToFacebookWall(String message, String link, String ImageUrl);
 	NPGamePlayerContainer GetCurrentPlayerDetails();
-	void OpenFeedDashboard();
-	Int32 GetCurrencyAmount();
-	void SetCurrencyAmount(Int32 amount);
-	void SetSupportsUnifiedCurrency(Boolean supported);
-	//void SetNextpeerNotificationAllowed(Boolean isAllowed);
 	void EnableRankingDisplay(bool enableRankingDisplay);
-	void SetAllowInterGameScreen(Boolean allowInterGameScreen);
-	void ResumePlayAgainLogic();
 	void SetNextpeerNotSupportedShouldShowCustomErrors(Boolean ShowError);
 	void RegisterToSyncEvent(string eventName, TimeSpan timeout);
+	//Recording manipulation
+	void ReportScoreModifier (String userId, Int32 scoreModifier);
+	void RequestFastForwardRecording (String userId, TimeSpan timeDelta);
+	void RequestPauseRecording (String userId);
+	void RequestResumeRecording (String userId);
+	void RequestRewindRecording(String userId, TimeSpan timeDelta);
+	void RequestStopRecording(String userId);
+
+
 	
 	// Non-SDK API:
 	NPTournamentStartDataContainer GetTournamentStartData();
@@ -43,8 +42,14 @@ public interface INextpeer
 	void RemoveStoredObjectWithId(String MessageID);
 	NPTournamentUnreliableCustomMessageContainer ConsumeUnreliableCustomMessage(String id);
 	NPTournamentStatusInfo? ConsumeTournamentStatusInfo(String MessageID);
-	NPTournamentEndDataContainer GetTournamentResult();
 	bool ConsumeSyncEventInfo(string syncEventInfoId, ref string eventName, ref NPSynchronizedEventFireReason fireReason);
+	
+	//Android only
+	#if UNITY_ANDROID
+	NPTournamentEndDataContainer GetTournamentResult();
+	void PushScreenshot(byte[] pngData);
+	#endif
+
 }
 
 #endif

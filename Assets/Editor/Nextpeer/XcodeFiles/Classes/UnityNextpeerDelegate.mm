@@ -9,7 +9,6 @@ extern void UnitySendMessage(const char *, const char *, const char *);
 static BOOL notSupportedShouldShowCustomError = NO;
 static NSMutableSet* whitelistTournamentIds = [[NSMutableSet alloc] init];
 static NSMutableSet* blacklistTournamentIds = [[NSMutableSet alloc] init];
-static BOOL shouldAllowInterGameScreen = NO;
 
 @interface UnityNextpeerDelegate ()
 {
@@ -99,19 +98,23 @@ static BOOL shouldAllowInterGameScreen = NO;
     if (player->name != NULL)
     {
         free(player->name);
+        player->name = NULL;
     }
     
     if (player->playerId != NULL)
     {
         free(player->playerId);
+        player->playerId = NULL;
     }
     
     if (player->imageUrl != NULL)
     {
         free(player->imageUrl);
+        player->imageUrl = NULL;
     }
     
     free(player);
+    player = NULL;
 }
 
 - (_NPTournamentPlayer*) createNPTournamentPlayerStruct:(NPTournamentPlayer*)player
@@ -127,12 +130,12 @@ static BOOL shouldAllowInterGameScreen = NO;
 {
     playerStruct->name = strdup([playerObject.playerName UTF8String]);
     playerStruct->playerId = strdup([playerObject.playerId UTF8String]);
-    playerStruct->imageUrl = strdup([playerObject.playerImageUrl UTF8String]);
+    playerStruct->imageUrl = strdup([playerObject.imageUrl UTF8String]);
     playerStruct->isBot = playerObject.playerIsBot;
     playerStruct->isCurrentUser = playerObject.isCurrentUser;
 }
 
-- (void) nextpeerWillTournamentStartWithDetails:(NPTournamentStartDataContainer *)tournamentContainer
+- (void) nextpeerDidTournamentStartWithDetails:(NPTournamentStartDataContainer *)tournamentContainer
 {
     [self freeNPTournamentPlayerRecursively:TournamentStart.mCurrentPlayer];
     TournamentStart.mCurrentPlayer = [self createNPTournamentPlayerStruct:tournamentContainer.currentPlayer];
@@ -140,6 +143,7 @@ static BOOL shouldAllowInterGameScreen = NO;
     if (TournamentStart.mOpponents != NULL)
     {
         free(TournamentStart.mOpponents);
+        TournamentStart.mOpponents = NULL;
     }
     TournamentStart.mOpponents = (_NPTournamentPlayer*)malloc(sizeof(_NPTournamentPlayer) * (tournamentContainer.numberOfPlayers-1));
     for (int opponentIndex = 0; opponentIndex < tournamentContainer.numberOfPlayers-1; opponentIndex++)
@@ -151,6 +155,7 @@ static BOOL shouldAllowInterGameScreen = NO;
     if (TournamentStart.mTournamentUuid != NULL)
     {
         free(TournamentStart.mTournamentUuid);
+        TournamentStart.mTournamentUuid = NULL;
     }
     TournamentStart.mTournamentUuid = new char[strlen(tournamentUuid) + 1];
     strcpy(TournamentStart.mTournamentUuid, tournamentUuid);
@@ -159,26 +164,13 @@ static BOOL shouldAllowInterGameScreen = NO;
     if (TournamentStart.mTournamentName != NULL)
     {
         free(TournamentStart.mTournamentName);
+        TournamentStart.mTournamentName = NULL;
     }
     TournamentStart.mTournamentName = new char[strlen(tournamentName) + 1];
     strcpy(TournamentStart.mTournamentName, tournamentName);
 
-    TournamentStart.mTournamentTimeSeconds = [tournamentContainer tournamentTimeSeconds];
     TournamentStart.mTournamentRandomSeed = [tournamentContainer tournamentRandomSeed];
-    TournamentStart.mTournamentIsGameControlled = [tournamentContainer tournamentIsGameControlled];
     TournamentStart.mNumberOfPlayers = [tournamentContainer numberOfPlayers];
-
-    UnitySendMessage(NP_GAMEOBJECTPATH,
-                     NP_WILL_TOURNAMENT_START_WITH_DETAILS,
-                     "");
-}
-
-
--(void) nextpeerDidTournamentStartWithDetails:(NPTournamentStartDataContainer *)tournamentContainer
-{
-    // The NPTournamentStartDataContainer shouldn't change since the nextpeerWillTournamentStartWithDetails
-    // So no need to feed it again.
-    // TODO: is this really true? Maybe there are some special fields?
     
     UnitySendMessage(NP_GAMEOBJECTPATH,
                      NP_DID_TOURNAMENT_START_WITH_DETAILS,
@@ -226,23 +218,6 @@ static BOOL shouldAllowInterGameScreen = NO;
     [[NPTournamentObjectsContainer sharedInstance] clearContainer];
     UnitySendMessage(NP_GAMEOBJECTPATH,
                      NP_DID_TOURNAMENT_END,
-                     "");
-}
-
--(BOOL)shouldAllowInterGameScreen
-{
-    return shouldAllowInterGameScreen;
-}
-
--(void)setShouldAllowInterGameScreen:(BOOL)shouldAllow
-{
-    shouldAllowInterGameScreen = shouldAllow;
-}
-
--(void)nextpeerWillHideToShowInterGameScreen
-{
-    UnitySendMessage(NP_GAMEOBJECTPATH,
-                     NP_WILL_HIDE_TO_SHOW_INTER_GAME_SCREEN,
                      "");
 }
 

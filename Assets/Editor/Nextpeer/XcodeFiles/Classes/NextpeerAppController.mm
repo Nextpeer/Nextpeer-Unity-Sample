@@ -7,8 +7,6 @@
 // external accessors which have to be pInvoked)
 static UnityNextpeerDelegate* NextpeerDelegate = nil;
 static UnityTournamentDelegate* TournamentDelegate = nil;
-static UnityNotificationDelegate* NotificationDelegate = nil;
-static UnityCurrencyDelegate* CurrencyDelegate = nil;
 
 // Memorise Launch options for handling notifications
 static NSDictionary* NPLaunchOptions = nil;
@@ -32,15 +30,6 @@ static BOOL IsNextpeerInitialised = NO;
     return TournamentDelegate;
 }
 
-+ (UnityNotificationDelegate*) GetNotificationDelegate
-{
-    return NotificationDelegate;
-}
-
-+ (UnityCurrencyDelegate*) GetCurrencyDelegate
-{
-    return CurrencyDelegate;
-}
 
 +(void)MarkNextpeerAsInitialised
 {
@@ -56,14 +45,11 @@ static BOOL IsNextpeerInitialised = NO;
     }
     
     [Nextpeer handleLaunchOptions:NPLaunchOptions];
-    [NPLaunchOptions release];
     NPLaunchOptions = nil;
 }
 
 - (void)application:(UIApplication*)application didReceiveLocalNotification:(UILocalNotification*)notification
 {
-    [Nextpeer handleLocalNotification:notification];
-    
     [super application:application didReceiveLocalNotification:notification];
 }
 
@@ -91,18 +77,11 @@ static BOOL IsNextpeerInitialised = NO;
         // Nextpeer initialisation with custom Handler provided
         NextpeerDelegate = [[UnityNextpeerDelegate alloc] init];
         TournamentDelegate =[[UnityTournamentDelegate  alloc] init];
-        NotificationDelegate = [[UnityNotificationDelegate alloc] init];
-        CurrencyDelegate = [[UnityCurrencyDelegate alloc] init];
         
         delegatesCreated = YES;
     }
     
-    if (NPLaunchOptions != nil)
-    {
-        [NPLaunchOptions release];
-    }
-    
-    NPLaunchOptions = [launchOptions retain];
+    NPLaunchOptions = launchOptions;
     
     [NextpeerAppController HandleLaunchOptions];
     
@@ -111,10 +90,6 @@ static BOOL IsNextpeerInitialised = NO;
 
 -(BOOL)application:(UIApplication *)application openURL:(NSURL *)url sourceApplication:(NSString *)sourceApplication annotation:(id)annotation
 {
-    if ([Nextpeer handleOpenURL:url]) {
-        return YES;
-    }
-    
     return [super application:application openURL:url sourceApplication:sourceApplication annotation:annotation];
 }
 

@@ -5,7 +5,6 @@
 
 @interface UnityTournamentDelegate : NSObject<NPTournamentDelegate>
 {
-    _NPTournamentEndDataContainer TournamentEnd;
 }
 
 // Tournament custom message accessor
@@ -13,12 +12,12 @@
 
 -(BOOL)consumeSyncEventWithId:(const char*)infoObjectId infoObject:(_NPSyncEventInfo*)syncEventInfo;
 
-// Tournament data access
-- (_NPTournamentEndDataContainer) getTournamentEndDataContainer;
 
 -(void)nextpeerDidReceiveTournamentCustomMessage:(NPTournamentCustomMessageContainer*)message;
 -(void)nextpeerDidReceiveUnreliableTournamentCustomMessage:(NPTournamentCustomUnreliableMessageContainer*)message;
--(void)nextpeerDidReceiveTournamentResults:(NPTournamentEndDataContainer*)tournamentContainer;
+- (_NPTournamentStatusInfo) consumeTournamentStatusInfoWithId:(const char*)statusId;
+
+-(_NPTournamentStatusInfo) consumeTournamentStatusInfoWithId:(const char*)statusId;
 
 @end
 

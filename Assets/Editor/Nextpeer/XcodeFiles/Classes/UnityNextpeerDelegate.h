@@ -26,7 +26,6 @@
 - (BOOL)nextpeerNotSupportedShouldShowCustomError;
 
 // Delegates that sends messages to Unity
-- (void)nextpeerWillTournamentStartWithDetails:(NPTournamentStartDataContainer *)tournamentContainer;
 - (void)nextpeerDidTournamentStartWithDetails:(NPTournamentStartDataContainer *)tournamentContainer;
 - (void)nextpeerDashboardWillAppear;
 - (void)nextpeerDashboardDidAppear;
@@ -34,11 +33,6 @@
 - (void)nextpeerDashboardDidDisappear;
 - (void)nextpeerDashboardDidReturnToGame;
 - (void)nextpeerDidTournamentEnd;
-
-// Inter-game screen:
--(void)setShouldAllowInterGameScreen:(BOOL)shouldAllowInterGameScreen;
--(BOOL)shouldAllowInterGameScreen;
--(void)nextpeerWillHideToShowInterGameScreen;
 
 @end
 #endif

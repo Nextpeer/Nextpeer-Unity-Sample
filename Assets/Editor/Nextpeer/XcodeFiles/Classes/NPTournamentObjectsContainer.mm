@@ -35,17 +35,10 @@ static NPTournamentObjectsContainer* sharedInstance;
     return self;
 }
 
--(void)dealloc
-{
-    [mObjectsContainer release];
-    
-    [super dealloc];
-}
-
 -(void)storeObject:(id)object andSendMessageToUnityMethod:(const char*)unityMethod
 {
     CFUUIDRef theUUID = CFUUIDCreate(NULL);
-    NSString* Key = (NSString*)CFUUIDCreateString(NULL, theUUID);
+    NSString* Key = (__bridge_transfer NSString*)CFUUIDCreateString(NULL, theUUID);
     CFRelease(theUUID);
     
     mObjectsContainer[Key] = object;
@@ -53,8 +46,6 @@ static NPTournamentObjectsContainer* sharedInstance;
     UnitySendMessage(NP_GAMEOBJECTPATH,
                      unityMethod,
                      [Key cStringUsingEncoding:NSASCIIStringEncoding]);
-    
-    [Key release];
 }
 
 -(void)removeObjectForId:(const char *)objectId

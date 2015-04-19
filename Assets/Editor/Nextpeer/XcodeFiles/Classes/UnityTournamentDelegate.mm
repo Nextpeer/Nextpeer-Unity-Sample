@@ -69,8 +69,7 @@ extern void UnitySendMessage(const char *, const char *, const char *);
         return NO;
     }
     
-    const char* tempString = [syncEventInfo.eventName UTF8String];
-    syncEventInfoStruct->syncEventName = strdup(tempString); // It's fine to strdup, because (1) it will be released by Mono, as the receiving field is a String, not an IntPtr, so Mono assumes control over memory management; (2) sync events are very infrequent, and not worth optimizing.
+    syncEventInfoStruct->syncEventName = [syncEventInfo.eventName UTF8String];
     syncEventInfoStruct->syncEventFireReason = syncEventInfo.fireReason;
     
     char* infoObjectIdCopy = strdup(infoObjectId);
@@ -84,10 +83,6 @@ extern void UnitySendMessage(const char *, const char *, const char *);
 
 // Tournament End data access
 //------------------------------------------------
-- (_NPTournamentEndDataContainer) getTournamentEndDataContainer
-{
-    return TournamentEnd;
-}
 
 - (void) nextpeerDidReceiveTournamentCustomMessage:(NPTournamentCustomMessageContainer*)message
 {
@@ -99,41 +94,60 @@ extern void UnitySendMessage(const char *, const char *, const char *);
     [[NPTournamentObjectsContainer sharedInstance] storeObject:message andSendMessageToUnityMethod:NP_DID_RECEIVE_UNRELIABLE_TOURNAMENT_CUSTOM_MESSAGE];
 }
 
--(void)nextpeerDidReceiveTournamentResults:(NPTournamentEndDataContainer*)tournamentContainer
-{
-    // Empty Custom messages array, in case these weren't consumed
-    [[NPTournamentObjectsContainer sharedInstance] clearContainer];
-    
-    if (TournamentEnd.mTournamentUuid != NULL)
-        free(TournamentEnd.mTournamentUuid);
-    if (TournamentEnd.mPlayerName != NULL)
-        free(TournamentEnd.mPlayerName);
-    
-    const char* tournamentUuid = [[tournamentContainer tournamentUuid] UTF8String];
-    TournamentEnd.mTournamentUuid = new char[strlen(tournamentUuid) + 1];
-    strcpy(TournamentEnd.mTournamentUuid, tournamentUuid);
-    
-    const char* playerName = [[tournamentContainer playerName] UTF8String];
-    TournamentEnd.mPlayerName = new char[strlen(playerName) + 1];
-    strcpy(TournamentEnd.mPlayerName, playerName);
-    
-    TournamentEnd.mCurrentCurrencyAmount = tournamentContainer.currentCurrencyAmount;
-    TournamentEnd.mPlayerRankInTournament = tournamentContainer.playerRankInTournament;
-    TournamentEnd.mTournamentTotalPlayers = tournamentContainer.tournamentTotalPlayers;
-    TournamentEnd.mPlayerScore = tournamentContainer.playerScore;    
-    
-    UnitySendMessage(NP_GAMEOBJECTPATH,
-                     NP_DID_RECEIVE_TOURNAMENT_RESULTS,
-                     "");
-}
-
 -(void)nextpeerDidReceiveSynchronizedEvent:(NSString *)eventName withReason:(NPSynchronizedEventFireReason)fireReason
 {
-    NPSyncEventInfo* syncEventInfo = [[NPSyncEventInfo new] autorelease];
+    NPSyncEventInfo* syncEventInfo = [NPSyncEventInfo new];
     syncEventInfo.eventName = eventName;
     syncEventInfo.fireReason = fireReason;
     
     [[NPTournamentObjectsContainer sharedInstance] storeObject:syncEventInfo andSendMessageToUnityMethod:NP_DID_RECEIVE_SYNC_EVENT];
+}
+
+-(void)nextpeerDidReceiveTournamentStatus:(NPTournamentStatusInfo *)tournamentStatus
+{
+    [[NPTournamentObjectsContainer sharedInstance] storeObject:tournamentStatus andSendMessageToUnityMethod:NP_DID_RECEIVE_TOURNAMENT_STATUS_INFO];
+}
+
+-(_NPTournamentStatusInfo)consumeTournamentStatusInfoWithId:(const char *)statusId
+{
+    // IMPORTANT: this code has a very unsafe optimization. To prevent extra array copying, we rely on the fact that in our C# code we immediately marshal the pointers that were populated by this method.
+    // So, autoreleasing these buffers is OK from our Objective C perspective, since by the next runloop iteration, all the data will have been marshalled.
+    
+    _NPTournamentStatusInfo result = {};
+    
+    NPTournamentStatusInfo* statusInfo = [[NPTournamentObjectsContainer sharedInstance] retrieveObjectForId:statusId];
+    if (statusInfo != nil)
+    {
+        result.numberOfResults = (int)statusInfo.sortedResults.count;
+        size_t sizeOfResultsArray = result.numberOfResults * sizeof(_NPTournamentPlayer);
+        result.results = (_NPTournamentPlayer*)malloc(sizeOfResultsArray);
+        
+        for (int resultIndex = 0; resultIndex < result.numberOfResults; resultIndex++)
+        {
+            NPTournamentPlayer* npCurrentPlayer = statusInfo.sortedResults[resultIndex];
+            _NPTournamentPlayer* currentPlayerResult = result.results + resultIndex;
+            
+            
+            currentPlayerResult->name = strdup([npCurrentPlayer.playerName UTF8String]);
+            currentPlayerResult->playerId = strdup([npCurrentPlayer.playerId UTF8String]);
+            currentPlayerResult->imageUrl = strdup([npCurrentPlayer.imageUrl UTF8String]);
+            currentPlayerResult->isBot = npCurrentPlayer.playerIsBot;
+            currentPlayerResult->isCurrentUser = [npCurrentPlayer isCurrentUser];
+            currentPlayerResult->isStillPlaying = npCurrentPlayer.isStillPlaying;
+            currentPlayerResult->didForfeit = npCurrentPlayer.didForfeit;
+            currentPlayerResult->score = [[npCurrentPlayer score] unsignedIntValue];
+        }
+        
+        // This is OK because of our optimization assumption (see above).
+        char* statusIdCopy = strdup(statusId);
+        dispatch_async(dispatch_get_main_queue(), ^() {
+            free(result.results);
+            [[NPTournamentObjectsContainer sharedInstance] removeObjectForId:statusIdCopy];
+            free(statusIdCopy);
+        });
+    }
+    
+    return result;
 }
 
 @end

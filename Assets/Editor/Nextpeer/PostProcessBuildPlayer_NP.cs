@@ -3,23 +3,21 @@ using UnityEditor;
 using UnityEditor.Callbacks;
 using System.IO;
 using System.Collections;
+using System.Collections.Generic;
 
 #if UNITY_IPHONE
 
 public static class PostProcessBuildPlayer_NP
 {
-	private static string FacebookSSOURLScheme = "fb192019987525706comnextpeerpenelopeexampleccga";
+	private static string FacebookSSOURLScheme = "";
+	const string _patchLine    = "#include <OpenGLES/ES2/glext.h>";
+	const string _locationLine = "#include <OpenGLES/ES2/gl.h>";
 	
 	[PostProcessBuild]
     public static void OnPostProcessBuild(BuildTarget target, string path)
     {
-		string resourceBundle;
-		if (!GetNPResourcesBundleName(out resourceBundle))
-		{
-			ShowError(resourceBundle);
-			return;
-		}
-		
+		// We'll need to call the patch_xcode_project.py Python script, but on some machines the +x permission
+		// we set is lost. We thus must set the execute permission, but only on Mac OS X machines.
 		path = Path.GetFullPath(path);
 		
 		// TODO: Can we get this path dynamically (or at compile time) somehow (e.g. like __FILE__ in c++)?
@@ -55,7 +53,7 @@ public static class PostProcessBuildPlayer_NP
 			}
 		}
 		
-		// Patch Xcode project
+		// We can now run the Python post-build script:
 		System.Diagnostics.Process patchProcess = new System.Diagnostics.Process();
 		patchProcess.StartInfo.UseShellExecute = false;
  		patchProcess.StartInfo.RedirectStandardOutput = true;
@@ -64,10 +62,8 @@ public static class PostProcessBuildPlayer_NP
 		patchProcess.StartInfo.Arguments =
 			'"' + path + '"' + // path to Xcode project
 			" \"" + Application.dataPath + '"' + // Unity Assets path
-			" " + resourceBundle + // name of the resources bundle to use
 			" " + PlayerSettings.iOS.sdkVersion.ToString() + // the SDK version
-			' ' + Application.unityVersion + // Unity version
-			' ' + FacebookSSOURLScheme; // Facebook SSO URL scheme (if set)
+			' ' + Application.unityVersion; // Unity version
 		
 		string patchScriptOutput = "";
 		try
@@ -90,60 +86,52 @@ public static class PostProcessBuildPlayer_NP
 				"The script arguments were: " + patchProcess.StartInfo.Arguments);
 			return;
 		}
+		
+		addGlInclude(path);
     }
-	
-	private static bool GetNPResourcesBundleName(out string bundle)
-	{
-		if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.AutoRotation)
-		{
-			bundle = "Nextpeer doesn't support AutoRotation orientation, must be either in Portrait or Landscape.";
-			return false;
-		}
-		
-        // Choose bundle based on player settings
-        if (PlayerSettings.iOS.targetDevice == iOSTargetDevice.iPhoneOnly)
-        {
-            if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeRight ||
-				PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeLeft)
-            {
-                bundle = "NPResources_iPhone_Landscape.bundle";
-				return true;
-            }
-            else if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.Portrait ||
-					 PlayerSettings.defaultInterfaceOrientation == UIOrientation.PortraitUpsideDown)
-            {
-                bundle = "NPResources_iPhone_Portrait.bundle";
-				return true;
-            }
-        }
-        else
-        {
-            if (Screen.orientation == ScreenOrientation.AutoRotation && PlayerSettings.iOS.targetDevice == iOSTargetDevice.iPadOnly)
-            {
-                bundle = "NPResources_iPad.bundle";
-				return true;
-            }
-            else if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeRight ||
-				     PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeLeft)
-            {
-                bundle = "NPResources_iPad_iPhone_Landscape.bundle";
-				return true;
-            }
-            else if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.Portrait ||
-					 PlayerSettings.defaultInterfaceOrientation == UIOrientation.PortraitUpsideDown)
-            {
-                bundle = "NPResources_iPad_iPhone_Portrait.bundle";
-				return true;
-            }
-        }
-		
-		bundle = "Nextpeer couldn't figure out which resource bundle to use, please contact support at support@nextpeer.com.";
-		return false;
-	}
 	
 	private static void ShowError(string errorMessage)
 	{
 		EditorUtility.DisplayDialog("Nextpeer error", errorMessage, "OK");
+	}
+	
+	private static void addGlInclude(string pathToBuiltProject)
+	{ 
+		var dirInfo = Directory.GetFiles(pathToBuiltProject, "CMVideoSampling.mm", SearchOption.AllDirectories);
+ 
+		if (dirInfo == null || dirInfo.Length <= 0) {
+			Debug.LogError("Could not find CMVideoSampling.mm");
+			return;
+		}
+ 
+		var cmSamplingPath = dirInfo[0];
+		var content = new List<string>(File.ReadAllLines(cmSamplingPath));
+ 
+		int index = 0;
+		var doPatch = true;
+ 
+		for (int ii = 0; ii < content.Count; ++ii)
+		{
+			var line = content[ii];
+ 
+			if (line.Contains(_patchLine)) {
+				doPatch = false;
+				break;
+			}
+			if (line.Contains(_locationLine)) {
+				index = ii+1;
+			}
+		}
+ 
+		if (doPatch)
+		{
+			Debug.Log("Patching CMVideoSampling.mm");
+			content.Insert(index, _patchLine);
+			File.WriteAllLines(cmSamplingPath, content.ToArray());
+		}
+		else {
+			Debug.Log("CMVideoSampling.mm patch already applied. Skipping.");
+		}
 	}
 }
 
