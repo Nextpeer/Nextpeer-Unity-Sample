@@ -21,12 +21,6 @@
 #define NP_WILL_HIDE_TO_SHOW_INTER_GAME_SCREEN              "WillHideToShowInterGameScreenHandler"
 #define NP_ADD_AMOUNT_TO_CURRENCY                           "AddAmountToCurrencyHandler"
 
-#define SAFE_SETTER(var, newValue) do { \
-    id oldValue = var; \
-    var = [newValue retain]; \
-    [oldValue release]; \
-} while (0)
-
 #define WARN_DEVELOPER(warning, ...) do { NSLog(@"\n==============================\n\nNextpeer warning: %@\n\n==============================", [NSString stringWithFormat:warning, ##__VA_ARGS__]); } while (0)
 
 #endif

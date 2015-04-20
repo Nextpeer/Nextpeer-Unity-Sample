@@ -484,6 +484,8 @@ public enum NPSynchronizedEventFireReason
 public class Nextpeer : MonoBehaviour
 {
 	#region Public interface
+
+	private static Nextpeer Instance;
 	
 	#region Events
 	
@@ -626,7 +628,7 @@ public class Nextpeer : MonoBehaviour
 		return false;
 #endif
 		
-		return _nextpeer.IsNextpeerSupported();
+		return getINextpeerInstance().IsNextpeerSupported();
 	}
 	
 	/// <returns>
@@ -634,7 +636,7 @@ public class Nextpeer : MonoBehaviour
 	/// </returns>
 	public static string ReleaseVersionString()
     {
-        return _nextpeer.ReleaseVersionString();
+        return getINextpeerInstance().ReleaseVersionString();
     }
 	
 	/// <summary>
@@ -651,13 +653,22 @@ public class Nextpeer : MonoBehaviour
 #if UNITY_EDITOR
 		return;
 #endif
-		
+		//-------Lazy initialization ----//
+		//Here we are looking for Nextpeer gameObject before we create it, for backward compatibility -
+		//to handle cases of users which created it manually (Probably before NU-44 was fixed).
+		Instance = (Nextpeer)FindObjectOfType(typeof(Nextpeer));
+		if (Instance == null)
+		{ 	
+			Instance = (new GameObject("Nextpeer")).AddComponent<Nextpeer>(); 
+		}
+		//-------------------------------//
+
 		if (_isInitialised)
 		{
 			return;
 		}
 		
-		_nextpeer.Init (GameKey, Settings);
+		getINextpeerInstance().Init (GameKey, Settings);
 		
 		_isInitialised = true;
     }
@@ -674,7 +685,7 @@ public class Nextpeer : MonoBehaviour
 		return;
 #endif
 		
-        _nextpeer.LaunchDashboard();
+        getINextpeerInstance().LaunchDashboard();
     }
 
 #if UNITY_IPHONE
@@ -683,7 +694,7 @@ public class Nextpeer : MonoBehaviour
 	/// </summary>
 	public static void DismissDashboard()
     {
-        _nextpeer.DismissDashboard();
+        getINextpeerInstance().DismissDashboard();
     }
 #endif
 	
@@ -699,7 +710,7 @@ public class Nextpeer : MonoBehaviour
 	/// </returns>
 	public static bool IsCurrentlyInTournament()
     {
-        return _nextpeer.IsCurrentlyInTournament();
+        return getINextpeerInstance().IsCurrentlyInTournament();
     }
 	
 	/// <summary>
@@ -711,7 +722,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void ReportScoreForCurrentTournament(UInt32 score)
     {
-        _nextpeer.ReportScoreForCurrentTournament(score);
+        getINextpeerInstance().ReportScoreForCurrentTournament(score);
     }
 	
 	/// <summary>
@@ -725,7 +736,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void ReportControlledTournamentOverWithScore(UInt32 score)
     {
-        _nextpeer.ReportControlledTournamentOverWithScore(score);
+        getINextpeerInstance().ReportControlledTournamentOverWithScore(score);
     }
 	
 	/// <summary>
@@ -736,7 +747,7 @@ public class Nextpeer : MonoBehaviour
 	/// </summary>
 	public static void ReportForfeitForCurrentTournament()
     {
-        _nextpeer.ReportForfeitForCurrentTournament();
+        getINextpeerInstance().ReportForfeitForCurrentTournament();
     }
 	
 	/// <summary>
@@ -749,7 +760,7 @@ public class Nextpeer : MonoBehaviour
 	/// </returns>
 	public static TimeSpan TimeLeftInTournament()
     {
-        return _nextpeer.TimeLeftInTournament();
+        return getINextpeerInstance().TimeLeftInTournament();
     }
 	
 	/// <summary>
@@ -767,7 +778,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void PushDataToOtherPlayers(byte[] data)
     {
-        _nextpeer.PushDataToOtherPlayers(data);
+        getINextpeerInstance().PushDataToOtherPlayers(data);
     }
 	
 	/// <summary>
@@ -783,9 +794,9 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void UnreliablePushDataToOtherPlayers(byte[] data)
     {
-        _nextpeer.UnreliablePushDataToOtherPlayers(data);
+        getINextpeerInstance().UnreliablePushDataToOtherPlayers(data);
     }
-	
+
 	/// <summary>
 	///  Registers to a synchronized event.
  	///
@@ -804,7 +815,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void RegisterToSynchronizedEvent(string eventName, TimeSpan timeout)
 	{
-		_nextpeer.RegisterToSyncEvent(eventName, timeout);
+		getINextpeerInstance().RegisterToSyncEvent(eventName, timeout);
 	}
 
 #if UNITY_IPHONE
@@ -836,7 +847,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void AddWhitelistTournament(string tournamentId)
 	{
-		_nextpeer.AddWhitelistTournament(tournamentId);
+		getINextpeerInstance().AddWhitelistTournament(tournamentId);
 	}
 	
 	/// <summary>
@@ -847,7 +858,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void RemoveWhitelistTournament(string tournamentId)
 	{
-		_nextpeer.RemoveWhitelistTournament(tournamentId);
+		getINextpeerInstance().RemoveWhitelistTournament(tournamentId);
 	}
 	
 	/// <summary>
@@ -855,7 +866,7 @@ public class Nextpeer : MonoBehaviour
 	/// </summary>
 	public static void ClearTournamentWhitelist()
 	{
-		_nextpeer.ClearTournamentWhitelist();
+		getINextpeerInstance().ClearTournamentWhitelist();
 	}
 	
 	/// <summary>
@@ -868,7 +879,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void AddBlacklistTournament(string tournamentId)
 	{
-		_nextpeer.AddBlacklistTournament(tournamentId);
+		getINextpeerInstance().AddBlacklistTournament(tournamentId);
 	}
 	
 	/// <summary>
@@ -879,7 +890,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void RemoveBlacklistTournament(string tournamentId)
 	{
-		_nextpeer.RemoveBlacklistTournament(tournamentId);
+		getINextpeerInstance().RemoveBlacklistTournament(tournamentId);
 	}
 	
 	/// <summary>
@@ -887,10 +898,90 @@ public class Nextpeer : MonoBehaviour
 	/// </summary>
 	public static void ClearTournamentBlacklist()
 	{
-		_nextpeer.ClearTournamentBlacklist();
+		getINextpeerInstance().ClearTournamentBlacklist();
 	}
 	
 	#endregion
+	
+	#endregion
+
+	#region Recording manipulation
+	
+	/// <summary>
+	/// Call this method to change the score of the given recording. 
+	/// The modifier can be negative or positive and thus points will either be added or reduced from the recording’s score.
+	/// </summary>
+	/// <param name='userId'>
+	/// The player ID of the target recording
+	/// </param>
+	///	<param name='scoreModifier'>
+	/// The score modifire to apply to the recording
+	/// </param>
+	public static void ReportScoreModifier(String userId, Int32 scoreModifier)
+	{
+		getINextpeerInstance().ReportScoreModifier(userId, scoreModifier);
+	}
+	
+	/// <summary>
+	///	Call this method to fast forward the given recording by timeDelta milliseconds.
+	/// </summary>
+	/// <param name='userId'>
+	/// The player ID of the target recording
+	/// </param>
+	///	<param name='timeDeltaMilliseconds'>
+	/// The interval by which to fast-forward the recording
+	/// </param>
+	public static void RequestFastForwardRecording(String userId, TimeSpan timeDelta)
+	{
+		getINextpeerInstance().RequestFastForwardRecording(userId, timeDelta);
+	}
+	
+	/// <summary>
+	///	Call this method to pause the given recording.
+	/// </summary>
+	/// <param name='userId'>
+	/// The player ID of the target recording
+	/// </param>
+	public static void RequestPauseRecording(String userId)
+	{
+		getINextpeerInstance().RequestPauseRecording(userId);
+	}
+	
+	/// <summary>
+	///	Call this method to resume the given recording.
+	/// </summary>
+	/// <param name='userId'>
+	/// The player ID of the target recording
+	/// </param>
+	public static void RequestResumeRecording(String userId)
+	{
+		getINextpeerInstance().RequestResumeRecording(userId);
+	}
+	
+	/// <summary>
+	///	Call this method to rewind the given recording by timeDelta milliseconds.
+	/// </summary>
+	/// <param name='userId'>
+	/// The player ID of the target recording
+	/// </param>
+	///	<param name='timeDelta'>
+	/// The interval by which to rewind the recording
+	/// </param>
+	public static void RequestRewindRecording(String userId, TimeSpan timeDelta)
+	{
+		getINextpeerInstance().RequestRewindRecording(userId, timeDelta);
+	}
+	
+	/// <summary>
+	///	Call this method to stop the given recording
+	/// </summary>
+	/// <param name='userId'>
+	/// The player ID of the target recording
+	/// </param>
+	public static void RequestStopRecording(String userId)
+	{
+		getINextpeerInstance().RequestStopRecording(userId);
+	}
 	
 	#endregion
 	
@@ -912,7 +1003,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void PostToFacebookWall(String message, String link, String ImageUrl)
     {
-        _nextpeer.PostToFacebookWall(message, link, ImageUrl);
+        getINextpeerInstance().PostToFacebookWall(message, link, ImageUrl);
     }
 #endif
 
@@ -924,7 +1015,7 @@ public class Nextpeer : MonoBehaviour
 	/// </returns>
 	public static NPGamePlayerContainer GetCurrentPlayerDetails()
     {
-        return _nextpeer.GetCurrentPlayerDetails();
+        return getINextpeerInstance().GetCurrentPlayerDetails();
     }
 
 #if UNITY_IPHONE
@@ -933,7 +1024,7 @@ public class Nextpeer : MonoBehaviour
 	/// </summary>
 	public static void OpenFeedDashboard()
     {
-        _nextpeer.OpenFeedDashboard();
+        getINextpeerInstance().OpenFeedDashboard();
     }
 #endif
 
@@ -952,7 +1043,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void EnableRankingDisplay(bool enableRankingDisplay)
 	{
-		_nextpeer.EnableRankingDisplay(enableRankingDisplay);
+		getINextpeerInstance().EnableRankingDisplay(enableRankingDisplay);
 	}
 
 #if UNITY_IPHONE
@@ -994,7 +1085,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void SetAllowInterGameScreen(Boolean allowInterGameScreen)
 	{
-		_nextpeer.SetAllowInterGameScreen(allowInterGameScreen);
+		getINextpeerInstance().SetAllowInterGameScreen(allowInterGameScreen);
 	}
 	
 	/// <summary>
@@ -1002,7 +1093,7 @@ public class Nextpeer : MonoBehaviour
 	/// </summary>
 	public static void ResumePlayAgainLogic()
 	{
-		_nextpeer.ResumePlayAgainLogic();
+		getINextpeerInstance().ResumePlayAgainLogic();
 	}
 	
 	/// <summary>
@@ -1017,7 +1108,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void SetNextpeerNotSupportedShouldShowCustomErrors(Boolean ShowError)
     {
-        _nextpeer.SetNextpeerNotSupportedShouldShowCustomErrors(ShowError);
+        getINextpeerInstance().SetNextpeerNotSupportedShouldShowCustomErrors(ShowError);
     }
 #endif
 
@@ -1035,7 +1126,7 @@ public class Nextpeer : MonoBehaviour
 	/// </returns>
 	public static Int32 GetCurrencyAmount()
     {
-    	return _nextpeer.GetCurrencyAmount();
+    	return getINextpeerInstance().GetCurrencyAmount();
     }
 	
 	/// <summary>
@@ -1046,7 +1137,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void SetCurrencyAmount(Int32 amount)
     {
-        _nextpeer.SetCurrencyAmount(amount);
+        getINextpeerInstance().SetCurrencyAmount(amount);
     }
 	
 	/// <summary>
@@ -1057,7 +1148,7 @@ public class Nextpeer : MonoBehaviour
 	/// </param>
 	public static void SetSupportsUnifiedCurrency(Boolean supported)
     {
-        _nextpeer.SetSupportsUnifiedCurrency(supported);
+        getINextpeerInstance().SetSupportsUnifiedCurrency(supported);
     }
 
 	#endif
@@ -1073,18 +1164,26 @@ public class Nextpeer : MonoBehaviour
 	
 	private static INextpeer _nextpeer;
 	private static bool _isInitialised = false;
+
+	private static INextpeer getINextpeerInstance(){
+		
+		if (null == _nextpeer) {
+			#if UNITY_ANDROID
+			_nextpeer = new NextpeerAndroid ();
+			#elif UNITY_IPHONE
+			_nextpeer = new NextpeerIOS();
+			#endif
+		}
+		
+		return _nextpeer;
+	}
 	
 	void Awake()
 	{
-		// Set the GameObject name to the class name for easy access from Obj-C
+		//Here we change the gameObject name to "Nextpeer" even though it named on creation, for backward compatibility -
+		//to handle cases of users which have Nextpeer placeholder game object with different name.
 		gameObject.name = this.GetType().ToString();
 		DontDestroyOnLoad( this );
-
-#if UNITY_ANDROID
-		_nextpeer = new NextpeerAndroid();
-#elif UNITY_IPHONE
-		_nextpeer = new NextpeerIOS();
-#endif
 	}
 	
 #if UNITY_ANDROID
@@ -1096,11 +1195,11 @@ public class Nextpeer : MonoBehaviour
 		
 		if (!pause)
 		{
-			((NextpeerAndroid)_nextpeer).onStart();
+			((NextpeerAndroid)getINextpeerInstance()).onStart();
 		}
 		else
 		{
-			((NextpeerAndroid)_nextpeer).onStop(
+			((NextpeerAndroid)getINextpeerInstance()).onStop(
 				() => { DidTournamentEndHandler(); }
 				);
 		}
@@ -1112,7 +1211,7 @@ public class Nextpeer : MonoBehaviour
 		return;
 #endif
 		
-		((NextpeerAndroid)_nextpeer).onStop(
+		((NextpeerAndroid)getINextpeerInstance()).onStop(
 				() => { DidTournamentEndHandler(); }
 				);
 	}
@@ -1124,7 +1223,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		if (DidTournamentStartWithDetails != null)
 		{
-			DidTournamentStartWithDetails(_nextpeer.GetTournamentStartData());
+			DidTournamentStartWithDetails(getINextpeerInstance().GetTournamentStartData());
 		}
 	}
 	
@@ -1140,7 +1239,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		if (WillTournamentStartWithDetails != null)
 		{
-			WillTournamentStartWithDetails(_nextpeer.GetTournamentStartData());
+			WillTournamentStartWithDetails(getINextpeerInstance().GetTournamentStartData());
 		}
 	}
 	
@@ -1196,7 +1295,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		if (DidReceiveTournamentCustomMessage != null)
 		{
-			NPTournamentCustomMessageContainer message = _nextpeer.ConsumeReliableCustomMessage(messageId);
+			NPTournamentCustomMessageContainer message = getINextpeerInstance().ConsumeReliableCustomMessage(messageId);
 		
 			if (message != null)
 			{
@@ -1205,7 +1304,7 @@ public class Nextpeer : MonoBehaviour
 		}
 		else
 		{
-			_nextpeer.RemoveStoredObjectWithId(messageId);
+			getINextpeerInstance().RemoveStoredObjectWithId(messageId);
 		}
 	}
 	
@@ -1213,7 +1312,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		if (DidReceiveUnreliableTournamentCustomMessage != null)
 		{
-			NPTournamentUnreliableCustomMessageContainer message = _nextpeer.ConsumeUnreliableCustomMessage(messageId);
+			NPTournamentUnreliableCustomMessageContainer message = getINextpeerInstance().ConsumeUnreliableCustomMessage(messageId);
 		
 			if (message != null)
 			{
@@ -1222,7 +1321,7 @@ public class Nextpeer : MonoBehaviour
 		}
 		else
 		{
-			_nextpeer.RemoveStoredObjectWithId(messageId);
+			getINextpeerInstance().RemoveStoredObjectWithId(messageId);
 		}
 	}
 
@@ -1230,7 +1329,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		if (DidReceiveTournamentStatus != null)
 		{
-			NPTournamentStatusInfo? status = _nextpeer.ConsumeTournamentStatusInfo(objectId);
+			NPTournamentStatusInfo? status = getINextpeerInstance().ConsumeTournamentStatusInfo(objectId);
 			
 			if (status != null)
 			{
@@ -1239,7 +1338,7 @@ public class Nextpeer : MonoBehaviour
 		}
 		else
 		{
-			_nextpeer.RemoveStoredObjectWithId(objectId);
+			getINextpeerInstance().RemoveStoredObjectWithId(objectId);
 		}
 	}
 
@@ -1247,7 +1346,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		if (DidReceiveTournamentResults != null)
 		{
-			DidReceiveTournamentResults(_nextpeer.GetTournamentResult());
+			DidReceiveTournamentResults(getINextpeerInstance().GetTournamentResult());
 		}
 	}
 	
@@ -1257,14 +1356,14 @@ public class Nextpeer : MonoBehaviour
 		{
 			string eventName = "";
 			NPSynchronizedEventFireReason fireReason = NPSynchronizedEventFireReason.AllReached;
-			if (_nextpeer.ConsumeSyncEventInfo(objectId, ref eventName, ref fireReason))
+			if (getINextpeerInstance().ConsumeSyncEventInfo(objectId, ref eventName, ref fireReason))
 			{
 				DidReceiveSynchronizedEvent(eventName, fireReason);
 			}
 		}
 		else
 		{
-			_nextpeer.RemoveStoredObjectWithId(objectId);
+			getINextpeerInstance().RemoveStoredObjectWithId(objectId);
 		}
 	}
 

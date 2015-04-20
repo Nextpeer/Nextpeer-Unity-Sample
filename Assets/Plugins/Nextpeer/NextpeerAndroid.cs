@@ -425,6 +425,26 @@ public class NextpeerAndroid : INextpeer
 		
 		return player;
 	}
+
+	//Recording manipulation
+	public void ReportScoreModifier (String userId, Int32 scoreModifier){
+		_nextpeer.CallStatic("reportScoreModifier", userId, scoreModifier);
+	}
+	public void RequestFastForwardRecording (String userId, TimeSpan timeDelta){
+		_nextpeer.CallStatic("requestFastForwardRecording", userId, (int)timeDelta.TotalMilliseconds);
+	}
+	public void RequestPauseRecording (String userId){
+		_nextpeer.CallStatic("requestPauseRecording", userId);
+	}
+	public void RequestResumeRecording (String userId){
+		_nextpeer.CallStatic("requestResumeRecording", userId);
+	}
+	public void RequestRewindRecording(String userId, TimeSpan timeDelta){
+		_nextpeer.CallStatic("requestRewindRecording", userId, (int)timeDelta.TotalMilliseconds);
+	}
+	public void RequestStopRecording(String userId){
+		_nextpeer.CallStatic("requestStopRecording", userId);		
+	}
 }
 
 #endif

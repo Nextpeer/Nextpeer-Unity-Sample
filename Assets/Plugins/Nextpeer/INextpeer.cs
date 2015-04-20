@@ -36,6 +36,15 @@ public interface INextpeer
 	void ResumePlayAgainLogic();
 	void SetNextpeerNotSupportedShouldShowCustomErrors(Boolean ShowError);
 	void RegisterToSyncEvent(string eventName, TimeSpan timeout);
+	//Recording manipulation
+	void ReportScoreModifier (String userId, Int32 scoreModifier);
+	void RequestFastForwardRecording (String userId, TimeSpan timeDelta);
+	void RequestPauseRecording (String userId);
+	void RequestResumeRecording (String userId);
+	void RequestRewindRecording(String userId, TimeSpan timeDelta);
+	void RequestStopRecording(String userId);
+
+
 	
 	// Non-SDK API:
 	NPTournamentStartDataContainer GetTournamentStartData();

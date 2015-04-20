@@ -56,7 +56,6 @@ static BOOL IsNextpeerInitialised = NO;
     }
     
     [Nextpeer handleLaunchOptions:NPLaunchOptions];
-    [NPLaunchOptions release];
     NPLaunchOptions = nil;
 }
 
@@ -97,12 +96,7 @@ static BOOL IsNextpeerInitialised = NO;
         delegatesCreated = YES;
     }
     
-    if (NPLaunchOptions != nil)
-    {
-        [NPLaunchOptions release];
-    }
-    
-    NPLaunchOptions = [launchOptions retain];
+    NPLaunchOptions = launchOptions;
     
     [NextpeerAppController HandleLaunchOptions];
     

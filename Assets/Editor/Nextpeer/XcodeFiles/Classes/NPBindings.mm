@@ -78,6 +78,27 @@ extern "C" {
         [[NextpeerAppController GetNextpeerDelegate] clearTournamentBlacklist];
     }
     
+    
+    // ------ Recording manipulation ---------------------------------------------
+    void _NPReportScoreModifier (const char* userId, int32_t score){
+        [Nextpeer reportScoreModifier:score forRecording:[NSString stringWithUTF8String:userId]];
+    }
+    void _NPRequestFastForwardRecording (const char* userId, uint32_t timeDeltaMilliseconds){
+        [Nextpeer requestFastForwardRecording:[NSString stringWithUTF8String:userId] withTimeDelta:timeDeltaMilliseconds];
+    }
+    void _NPRequestPauseRecording (const char* userId){
+        [Nextpeer requestPauseRecording:[NSString stringWithUTF8String:userId]];
+    }
+    void _NPRequestResumeRecording (const char* userId){
+        [Nextpeer requestResumeRecording:[NSString stringWithUTF8String:userId]];
+    }
+    void _NPRequestRewindRecording (const char* userId, uint32_t timeDeltaMilliseconds){
+        [Nextpeer requestRewindRecording:[NSString stringWithUTF8String:userId] withTimeDelta:timeDeltaMilliseconds];
+    }
+	void _NPRequestStopRecording (const char* userId){
+        [Nextpeer requestStopRecording:[NSString stringWithUTF8String:userId]];
+    }
+    
     // ------ NextpeerNotSupportedShouldShowCustomError ---------------------------------------------
     void _NPSetNextpeerNotSupportedShouldShowErrors(bool ShouldShow)
     {
@@ -98,16 +119,14 @@ extern "C" {
     // ------------------- Nextpeer.h ---------------------------------------------------------------
     const char* _NPReleaseVersionString()
     {
-        // Mono will release the dupped string. See http://www.mono-project.com/Interop_with_Native_Libraries#Strings_as_Return_Values
-        const char* retString = strdup([[Nextpeer releaseVersionString] UTF8String]);
-        return retString;
+        return [[Nextpeer releaseVersionString] UTF8String];
     }
     
     void _NPInitSettings(const char *Key, _NPGameSettings* settings)
     {
         NSString* gameKeyAsString = [NSString stringWithUTF8String:Key];
         
-        NPDelegatesContainer* delegatesContainer = [[NPDelegatesContainer new] autorelease];
+        NPDelegatesContainer* delegatesContainer = [NPDelegatesContainer new];
         delegatesContainer.nextpeerDelegate = [NextpeerAppController GetNextpeerDelegate];
         delegatesContainer.tournamentDelegate = [NextpeerAppController GetTournamentDelegate];
         delegatesContainer.currencyDelegate = [NextpeerAppController GetCurrencyDelegate];
@@ -147,21 +166,21 @@ extern "C" {
         return [Nextpeer isNextpeerSupported];
     }
     
-    void _NPPostToFacebookWallMessage(const char *message, const char *link,const char *imageUrl)
+    void _NPPostToFacebookWallMessage(const char *message, const char *link, const char *imageUrl)
     {
-        NSString* StrMess = [[[NSString alloc] initWithUTF8String:message] autorelease];
+        NSString* StrMess = [[NSString alloc] initWithUTF8String:message];
         
         NSString* StrLink;
         if (strlen(link) <= 0)
             StrLink = nil;
         else
-            StrLink = [[[NSString alloc] initWithUTF8String:link] autorelease];
+            StrLink = [[NSString alloc] initWithUTF8String:link];
         
         NSString* StrImg;
         if (strlen(imageUrl))
             StrImg = nil;
         else
-            StrImg = [[[NSString alloc] initWithUTF8String:imageUrl] autorelease];
+            StrImg = [[NSString alloc] initWithUTF8String:imageUrl];
         
         [Nextpeer postToFacebookWallMessage:StrMess link:StrLink imageUrl:StrImg];
     }
@@ -184,7 +203,6 @@ extern "C" {
         // NB: we copy the bytes as a precaution - the underlying memory comes from C# and may very well be released after this function is called.
         NSData* dataToSend = [[NSData alloc] initWithBytes:(const void *)data length:size];
         [Nextpeer pushDataToOtherPlayers:dataToSend];
-        [dataToSend release];
     }
     
     void _NPUnreliablePushDataToOtherPlayers(const char *data, int size)
@@ -192,7 +210,6 @@ extern "C" {
         // NB: we copy the bytes as a precaution - the underlying memory comes from C# and may very well be released after this function is called.
         NSData* dataToSend = [[NSData alloc] initWithBytes:(const void *)data length:size];
         [Nextpeer unreliablePushDataToOtherPlayers:dataToSend];
-        [dataToSend release];
     }
     
     void _NPReportScoreForCurrentTournament(uint32_t score)
@@ -221,9 +238,9 @@ extern "C" {
         [Nextpeer reportControlledTournamentOverWithScore:score];
     }
     
-    NSUInteger _NPTimeLeftInTournament()
+    uint32_t _NPTimeLeftInTournament()
     {
-        return [Nextpeer timeLeftInTournament];
+        return (uint32_t)[Nextpeer timeLeftInTournament];
     }
     
     // Tournament
@@ -265,9 +282,9 @@ extern "C" {
     }
     
     // Currency
-    NSInteger _NPGetCurrencyAmount()
+    int32_t _NPGetCurrencyAmount()
     {
-        return [[NextpeerAppController GetCurrencyDelegate] getCurrencyAmount];
+        return (int32_t)[[NextpeerAppController GetCurrencyDelegate] getCurrencyAmount];
     }
     
     void _NPSetCurrencyAmount(NSInteger amount)

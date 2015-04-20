@@ -33,19 +33,20 @@ def main():
     print "Unity version: " + unity_version
     print "Nextpeer XcodeFiles path: " + np_xcode_path
     
-    # Have we already patched this build?
+    # Have we already patched this build? If yes, do nothing, for fear of creating
+    # duplicate changes that will bite us in the behind.
     if os.path.exists(os.path.join(ios_path, NP_DID_RUN_FILE)):
         print "Build was already patched, doing nothing. Enjoy Nextpeer!"
         return
 
-    # Extract Nextpeer SDK into iOS project path
+    # Extract Nextpeer SDK into the Xcode project:
     np_sdk_zip = os.path.join(script_path, "NextpeerSDK.zip")
     if not os.path.exists(np_sdk_zip):
         raise Exception("NextpeerSDK zip did not exist - unable to add Nextpeer to Xcode project (expected %s)" % np_sdk_zip)
     cmd = 'unzip -o -qq "' + os.path.join(np_sdk_zip) + '" -d "' + ios_path + '"'
     os.system(cmd)
     
-    # Find the path of the resources bundle to use.
+    # Find the path of the resources bundle to use:
     selected_bundle_path = None
     for bundle in glob.glob(os.path.join(ios_path, "NextpeerSDK/Resources/*.bundle")):
         if bundle.endswith(np_resources_bundle):
@@ -54,21 +55,21 @@ def main():
     if selected_bundle_path == None:
         raise Exception("Requested bundle was not found - unable to add Nextpeer to Xcode project (expected %s)" % np_resources_bundle)
     
-    # Open the xcode project
+    # Open the Xcode project for editing:
     xcode_project_path = os.path.join(ios_path, 'Unity-iPhone.xcodeproj/project.pbxproj')
     print 'Opening: ' + xcode_project_path
     project = XcodeProject.Load(xcode_project_path)
 
-    # Create a group for Nextpeer
+    # Create a group for Nextpeer:
     print "Creating Nextpeer group"
     parent = project.get_or_create_group("Nextpeer")
     
-    # Add the Nextpeer framework and resources bundle
+    # Add the Nextpeer framework and resources bundle:
     print "Adding Nextpeer framwork and resources bundle"
     project.add_folder(os.path.join(ios_path, "NextpeerSDK/Nextpeer.framework"), parent=parent)
     project.add_folder(selected_bundle_path, parent=parent)
     
-    # Add system frameworks
+    # Add system frameworks:
     print "Adding system frameworks"
     system_frameworks_path = 'System/Library/Frameworks'
     frameworks_parent = project.get_or_create_group("Frameworks", parent=parent)
@@ -81,33 +82,34 @@ def main():
     for f in ("AdSupport", ):
         project.add_file(os.path.join(system_frameworks_path, f+'.framework'), parent=frameworks_parent, tree='SDKROOT', weak=True)    
     
-    # Add libs
+    # Add libs:
     print "Adding system libs"
     system_libs_path = 'usr/lib'
     libs_parent = project.get_or_create_group('Libraries', parent=parent)
     for l in ["libz.dylib", "libsqlite3.dylib"]:
         project.add_file(os.path.join(system_libs_path, l), parent=libs_parent, tree='SDKROOT')    
     
-    # Add all source files from Classes directory
+    # Add all source files from Classes directory:
     print "Adding Nextpeer sources"
     for f in os.listdir(os.path.join(np_xcode_path, "Classes")):
-        if f.endswith((".h", ".mm")) and not f.startswith("AppController"):
-            project.add_file(os.path.join(np_xcode_path, "Classes", f), parent=parent, tree='SOURCE_ROOT')
+        if f.endswith((".h", ".mm")):
+            file_refs = project.add_file(os.path.join(np_xcode_path, "Classes", f), parent=parent, tree='SOURCE_ROOT')
+            # The first file ref is the added file and the rest are refs added to the build phases.
+            for build_file_ref in file_refs[1:]:
+                build_file_ref.add_compiler_flag("-fobjc-arc")
     
-    # Add -ObjC
+    # Add -ObjC as a linker flag:
     print "Adding -ObjC linker flag"
     project.add_other_ldflags('-ObjC')
-        
+    
     print 'Saving: ' + xcode_project_path
     project.saveFormat3_2()
     
     # Populate NPDynamicDefines.h:
+    # Unity 4.2 changed the name and file of their app delegate class from AppController to UnityAppController.
+    # We chose to handle this by defining a special macro, with our own app delegate using the appropriate
+    # class depending on this macro.
     dynamic_defines_path = os.path.join(np_xcode_path, "Classes", "NPDynamicDefines.h")
-
-    # But first, clear the file:
-    with open(dynamic_defines_path, "wb") as dd_out:
-        dd_out.write("\n")
-
     if LooseVersion(unity_version) >= LooseVersion("4.2"):
         print "Populating NPDynamicDefines.h at path: " + dynamic_defines_path
         with open(dynamic_defines_path, "wb") as dd_out:
@@ -158,10 +160,17 @@ def main():
             old_app_ctrlr_writer.write(updated_code)
 
 
-    # If we're compiling for the simulator, patch RegisterMonoModules.cpp so we can run in the simulator:
-    # NB: currently, we'll always perform this patch, because the dev may switch the SDK type and perform an append.
+    # If we're compiling for the simulator, patch RegisterMonoModules.cpp so we can run in the simulator.
+    # RegisterMonoModules has a fucntion that registers our native functions (that are used in P/Invoke)
+    # with the Unity runtime. The registration calls look like this:
+    # mono_dl_register_symbol("_NPReleaseVersionString", (void*)&_NPReleaseVersionString);
+    # However, for an unknown reason, if the target platform is the simulator, those calls won't be registered, 
+    # as they are inside an '#if !(TARGET_IPHONE_SIMULATOR)' directive. To run in the simulaor, then, we must
+    # patch that file to always register our functions.
+    # Currently, we'll always perform this patch, because the dev may switch the SDK type and perform an append
+    # (in which case our Python post-build script won't run).
     if True: #ios_sdk_version == "SimulatorSDK":
-        # We assume the format of RegisterMonoModules to remain the same for some time. It didn't change between Unity 3 and 4...
+        # We assume the format of RegisterMonoModules to remain the same for some time - it didn't change between Unity 3 and 4.
 
         rmm_file_path = os.path.join(ios_path, "Libraries/RegisterMonoModules.cpp")
         print "Patching RegisterMonoModules.cpp so it'll work in the simulator, location: " + rmm_file_path
@@ -170,31 +179,43 @@ def main():
         with open(rmm_file_path, "rb") as rmm_reader:
             func_lines = rmm_reader.readlines()
 
+        # The method that registers our functions, mono_dl_register_symbol, is itself declared within
+        # an '#if !(TARGET_IPHONE_SIMULATOR)' directive. We thus have to do a two-pass run on the file -
+        # in the first run, move that declaration outside of the #if. In the second run, move the #endif
+        # that masks the list of calls to mono_dl_register_symbol (that register our functions) above
+        # the calls themselves.
         if func_lines is not None:
+            # First pass: find the declaration of mono_dl_register_symbol and move it to safety.
             for ix in range(len(func_lines)):
                 line = func_lines[ix]
                 if "mono_dl_register_symbol" in line:
+                    # Save the declaration:
                     register_symbol_line = line
+                    # Comment out the original declaration, so that it won't be declared twice:
                     func_lines[ix] = "//" + line
                 elif "#endif" in line:
+                    # Insert the declaration we found above right after the #endif:
                     func_lines.insert(ix+1, register_symbol_line)
                     break
 
+            # Second pass: un-mask the calls to mono_dl_register_symbol.
             added_endif = False
             for ix in range(len(func_lines)):
                 line = func_lines[ix]
                 if not added_endif and 'mono_dl_register_symbol("_NP' in line:
+                    # Insert an #endif above the first call to mono_dl_register_symbol
                     func_lines.insert(ix, "#endif" + os.linesep)
                     added_endif = True
                 elif added_endif:
                     if "#endif" in line:
+                        # Delete the next #endif we find (the one we inserted above takes its place)
                         del func_lines[ix]
                         break
 
             with open(rmm_file_path, "wb") as rmm_writer:
                 rmm_writer.writelines(func_lines)
 
-    # Patching Info.plist to add the facebook SSO URL scheme if required:
+    # Patch Info.plist to add the Facebook SSO URL scheme if required:
     if fb_sso_url_scheme is not None:
         print "Adding Facebook SSO URL Scheme to Info.plist"
         info_plist_path = os.path.join(ios_path, "Info.plist")
@@ -215,7 +236,7 @@ def main():
             plistlib.writePlist(info_plist, info_plist_path)
         
 
-    # Mark the build as patched with an empty file:
+    # Mark the build as patched by creating an empty file to serve as a flag:
     with open(os.path.join(ios_path, NP_DID_RUN_FILE), "wb"):
         pass
 

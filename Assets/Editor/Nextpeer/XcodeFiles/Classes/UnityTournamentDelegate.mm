@@ -69,8 +69,7 @@ extern void UnitySendMessage(const char *, const char *, const char *);
         return NO;
     }
     
-    const char* tempString = [syncEventInfo.eventName UTF8String];
-    syncEventInfoStruct->syncEventName = strdup(tempString); // It's fine to strdup, because (1) it will be released by Mono, as the receiving field is a String, not an IntPtr, so Mono assumes control over memory management; (2) sync events are very infrequent, and not worth optimizing.
+    syncEventInfoStruct->syncEventName = [syncEventInfo.eventName UTF8String];
     syncEventInfoStruct->syncEventFireReason = syncEventInfo.fireReason;
     
     char* infoObjectIdCopy = strdup(infoObjectId);
@@ -129,7 +128,7 @@ extern void UnitySendMessage(const char *, const char *, const char *);
 
 -(void)nextpeerDidReceiveSynchronizedEvent:(NSString *)eventName withReason:(NPSynchronizedEventFireReason)fireReason
 {
-    NPSyncEventInfo* syncEventInfo = [[NPSyncEventInfo new] autorelease];
+    NPSyncEventInfo* syncEventInfo = [NPSyncEventInfo new];
     syncEventInfo.eventName = eventName;
     syncEventInfo.fireReason = fireReason;
     
