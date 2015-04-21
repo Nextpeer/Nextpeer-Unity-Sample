@@ -5,6 +5,7 @@ using System.IO;
 using System.Collections;
 using System.Collections.Generic;
 
+
 #if UNITY_IPHONE
 
 public static class PostProcessBuildPlayer_NP
@@ -12,10 +13,19 @@ public static class PostProcessBuildPlayer_NP
 	private static string FacebookSSOURLScheme = "";
 	const string _patchLine    = "#include <OpenGLES/ES2/glext.h>";
 	const string _locationLine = "#include <OpenGLES/ES2/gl.h>";
+
 	
 	[PostProcessBuild]
     public static void OnPostProcessBuild(BuildTarget target, string path)
     {
+		// Figure out which resource bundle we're supposed to use:
+		string resourceBundle;
+		if (!GetNPResourcesBundleName(out resourceBundle))
+		{
+			ShowError(resourceBundle);
+			return;
+		}
+
 		// We'll need to call the patch_xcode_project.py Python script, but on some machines the +x permission
 		// we set is lost. We thus must set the execute permission, but only on Mac OS X machines.
 		path = Path.GetFullPath(path);
@@ -62,8 +72,10 @@ public static class PostProcessBuildPlayer_NP
 		patchProcess.StartInfo.Arguments =
 			'"' + path + '"' + // path to Xcode project
 			" \"" + Application.dataPath + '"' + // Unity Assets path
+			" " + resourceBundle + // name of the resources bundle to use
 			" " + PlayerSettings.iOS.sdkVersion.ToString() + // the SDK version
-			' ' + Application.unityVersion; // Unity version
+			' ' + Application.unityVersion + // Unity version
+			' ' + FacebookSSOURLScheme; // Facebook SSO URL scheme (if set)
 		
 		string patchScriptOutput = "";
 		try
@@ -87,8 +99,58 @@ public static class PostProcessBuildPlayer_NP
 			return;
 		}
 		
+		
 		addGlInclude(path);
     }
+	
+	private static bool GetNPResourcesBundleName(out string bundle)
+	{
+		if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.AutoRotation)
+		{
+			bundle = "Nextpeer doesn't support AutoRotation orientation, must be either in Portrait or Landscape.";
+			return false;
+		}
+		
+        // Choose bundle based on player settings
+        if (PlayerSettings.iOS.targetDevice == iOSTargetDevice.iPhoneOnly)
+        {
+            if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeRight ||
+				PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeLeft)
+            {
+                bundle = "NPResources_iPhone_Landscape.bundle";
+				return true;
+            }
+            else if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.Portrait ||
+					 PlayerSettings.defaultInterfaceOrientation == UIOrientation.PortraitUpsideDown)
+            {
+                bundle = "NPResources_iPhone_Portrait.bundle";
+				return true;
+            }
+        }
+        else
+        {
+            if (Screen.orientation == ScreenOrientation.AutoRotation && PlayerSettings.iOS.targetDevice == iOSTargetDevice.iPadOnly)
+            {
+                bundle = "NPResources_iPad.bundle";
+				return true;
+            }
+            else if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeRight ||
+				     PlayerSettings.defaultInterfaceOrientation == UIOrientation.LandscapeLeft)
+            {
+                bundle = "NPResources_iPad_iPhone_Landscape.bundle";
+				return true;
+            }
+            else if (PlayerSettings.defaultInterfaceOrientation == UIOrientation.Portrait ||
+					 PlayerSettings.defaultInterfaceOrientation == UIOrientation.PortraitUpsideDown)
+            {
+                bundle = "NPResources_iPad_iPhone_Portrait.bundle";
+				return true;
+            }
+        }
+		
+		bundle = "Nextpeer couldn't figure out which resource bundle to use, please contact support at support@nextpeer.com.";
+		return false;
+	}
 	
 	private static void ShowError(string errorMessage)
 	{
@@ -134,5 +196,4 @@ public static class PostProcessBuildPlayer_NP
 		}
 	}
 }
-
 #endif

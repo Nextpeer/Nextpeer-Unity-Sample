@@ -8,15 +8,24 @@ NSDictionary* SettingsFromStruct(_NPGameSettings* settings)
 {
     // NB: currently, only two options may be left unspecified. The others are populated with default values on the C# side, if they're not specified by the developer.
     NSMutableDictionary* result = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                                    [NSNumber numberWithBool:settings->observeNotificationOrientationChange], NextpeerSettingObserveNotificationOrientationChange,
-                                    [NSNumber numberWithInt:settings->notificationPosition], NextpeerSettingNotificationPosition,
-                                    [NSNumber numberWithBool:settings->supportsDasboardRotation], NextpeerSettingSupportsDashboardRotation,
+                                   [NSNumber numberWithBool:settings->observeNotificationOrientationChange],    NextpeerSettingObserveNotificationOrientationChange,
+                                   [NSNumber numberWithInt:settings->notificationPosition],                     NextpeerSettingNotificationPosition,
+                                   [NSNumber numberWithBool:settings->supportsDasboardRotation],                NextpeerSettingSupportsDashboardRotation,
                                    nil];
-
+    
+    if (strlen(settings->displayName) > 0)
+    {
+        result[NextpeerSettingDisplayName] = [NSString stringWithUTF8String:settings->displayName];
+    }
     
     if (settings->initialDashboardOrientation != 0)
     {
         result[NextpeerSettingInitialDashboardOrientation] = [NSNumber numberWithInt:settings->initialDashboardOrientation];
+    }
+    
+    if (settings->notificationOrientation != 0)
+    {
+        result[NextpeerSettingNotificationOrientation] = [NSNumber numberWithInt:settings->notificationOrientation];
     }
     
     if (settings->rankingDisplayStyle != 0)
@@ -120,6 +129,8 @@ extern "C" {
         NPDelegatesContainer* delegatesContainer = [NPDelegatesContainer new];
         delegatesContainer.nextpeerDelegate = [NextpeerAppController GetNextpeerDelegate];
         delegatesContainer.tournamentDelegate = [NextpeerAppController GetTournamentDelegate];
+        delegatesContainer.currencyDelegate = [NextpeerAppController GetCurrencyDelegate];
+        delegatesContainer.notificationDelegate = [NextpeerAppController GetNotificationDelegate];
         
         NSDictionary* settingsDict = nil;
         if (settings != NULL)
@@ -145,9 +156,33 @@ extern "C" {
         [Nextpeer launchDashboard];
     }
     
+    void _NPDismissDashboard()
+    {
+        [Nextpeer dismissDashboard];
+    }
+    
     bool _NPIsNextpeerSupported()
     {
         return [Nextpeer isNextpeerSupported];
+    }
+    
+    void _NPPostToFacebookWallMessage(const char *message, const char *link, const char *imageUrl)
+    {
+        NSString* StrMess = [[NSString alloc] initWithUTF8String:message];
+        
+        NSString* StrLink;
+        if (strlen(link) <= 0)
+            StrLink = nil;
+        else
+            StrLink = [[NSString alloc] initWithUTF8String:link];
+        
+        NSString* StrImg;
+        if (strlen(imageUrl))
+            StrImg = nil;
+        else
+            StrImg = [[NSString alloc] initWithUTF8String:imageUrl];
+        
+        [Nextpeer postToFacebookWallMessage:StrMess link:StrLink imageUrl:StrImg];
     }
     
     _NPGamePlayerContainer _NPGetCurrentPlayerDetails()
@@ -158,6 +193,7 @@ extern "C" {
         RetPC.PlayerId = [PC.playerId UTF8String];
         RetPC.PlayerName = [PC.playerName UTF8String];
         RetPC.ProfileImageURL = [PC.profileImageUrl UTF8String];
+        RetPC.IsSocialAuthenticated = PC.isSocialAuthenticated;
         
         return RetPC;
     }
@@ -202,6 +238,11 @@ extern "C" {
         [Nextpeer reportControlledTournamentOverWithScore:score];
     }
     
+    uint32_t _NPTimeLeftInTournament()
+    {
+        return (uint32_t)[Nextpeer timeLeftInTournament];
+    }
+    
     // Tournament
     bool _NPConsumeCustomMessage(const char* MessageID, _NPTournamentCustomMessageContainer* message)
     {
@@ -210,7 +251,7 @@ extern "C" {
     
     _NPTournamentStatusInfo _NPConsumeTournamentStatusInfo(const char* MessageID)
     {
-        return [[NextpeerAppController GetTournamentDelegate] consumeTournamentStatusInfoWithId:MessageID];
+        return [[NextpeerAppController GetNotificationDelegate] consumeTournamentStatusInfoWithId:MessageID];
     }
     
     void _NPRemoveStoredObjectWithId(const char* objectId)
@@ -218,9 +259,52 @@ extern "C" {
         [[NPTournamentObjectsContainer sharedInstance] removeObjectForId:objectId];
     }
     
+    _NPTournamentEndDataContainer _NPGetTournamentResult()
+    {
+        return [[NextpeerAppController GetTournamentDelegate] getTournamentEndDataContainer];
+    }
+    
     bool _NPConsumeSyncEvent(const char* syncEventObjectId, _NPSyncEventInfo* syncEventInfo)
     {
         return [[NextpeerAppController GetTournamentDelegate] consumeSyncEventWithId:syncEventObjectId infoObject:syncEventInfo];
+    }
+    
+    // Inter game screen logic
+    
+    void _NPSetShouldAllowInterGameScreen(bool allowInterGameScreen)
+    {
+        [[NextpeerAppController GetNextpeerDelegate] setShouldAllowInterGameScreen:allowInterGameScreen];
+    }
+    
+    void _NPResumePlayAgainLogic()
+    {
+        [Nextpeer resumePlayAgainLogic];
+    }
+    
+    // Currency
+    int32_t _NPGetCurrencyAmount()
+    {
+        return (int32_t)[[NextpeerAppController GetCurrencyDelegate] getCurrencyAmount];
+    }
+    
+    void _NPSetCurrencyAmount(NSInteger amount)
+    {
+        [[NextpeerAppController GetCurrencyDelegate] setCurrencyAmount:amount];
+    }
+    
+    bool _NPIsUnifiedCurrencySupported()
+    {
+        return [[NextpeerAppController GetCurrencyDelegate] isUnifiedCurrencySupported];
+    }
+    
+    void _NPSwitchUnifiedCurrencySupported(bool isSupported)
+    {
+        [[NextpeerAppController GetCurrencyDelegate] switchUnifiedCurrencySupported:isSupported];
+    }
+    
+    void _NPOpenFeedDashboard()
+    {
+        [Nextpeer openFeedDashboard];
     }
     
     void _NPEnableRankingDisplay(bool enableRankingDisplay)

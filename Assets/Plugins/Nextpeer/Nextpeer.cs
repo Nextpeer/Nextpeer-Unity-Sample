@@ -34,6 +34,13 @@ public struct NPGamePlayerContainer
 	/// The player image URL.
 	/// </summary>
     public String ProfileImageURL;
+
+#if UNITY_IPHONE
+	/// <summary>
+	/// Whether or not the current player is a Facebook (or Twitter in the future for example) user or not.
+	/// </summary>
+    public bool IsSocialAuthenticated;
+#endif
 }
 
 /// <summary>
@@ -180,7 +187,12 @@ public struct NPGameSettings
 	/// </summary>
 	public NPRankingDisplayAlignment? RankingDisplayAlignment;
 
-#if UNITY_IPHONE	
+#if UNITY_IPHONE
+	/// <summary>
+	/// The display name.
+	/// </summary>
+    public String DisplayName;
+	
 	/// <summary>
 	/// Defines what orientation the game notification should appear. The notification system does not auto rotate.
 	/// 
@@ -196,6 +208,16 @@ public struct NPGameSettings
 	/// Default: false
 	/// </summary>
     public Boolean? ObserveNotificationOrientationChange;
+	
+	[Obsolete("In-game notifications have been removed, so this setting no longer has any effect.")]
+	/// <summary>
+	/// Specifies if the game supports retina mode (iOS4+). This affects generated images that come
+	/// from the NPNotificationContainer. If set to True, the generated images will be sized according to the
+	/// device compatibility (retina devices receiving larger images).
+	/// 
+	/// Default: true
+	/// </summary>
+    public Boolean? SupportsRetina;
 	
 	/// <summary>
 	/// Defines if Nextpeer should observe device orientation change and adjust the dashboard according to changes.
@@ -239,11 +261,21 @@ public struct NPTournamentStartDataContainer
     public String TournamentName;
 	
 	/// <summary>
+	/// The tournament duration in seconds (if the tournament is timed, i.e. not game controlled).
+	/// </summary>
+    public UInt32 TournamentTimeSeconds;
+	
+	/// <summary>
 	/// A random seed generated for this tournament. All players within the same tournament
 	/// receive the same seed from the tournament. Can be used for level generation, to ensure
 	/// all players play the same level in a specific game.
 	/// </summary>
     public UInt32 TournamentRandomSeed;
+	
+	/// <summary>
+	/// A flag that marks if the current tournament is game controlled.
+	/// </summary>
+    public Boolean TournamentIsGameControlled;
 	
 	/// <summary>
 	/// The number of players that started this tournament. Includes the current player.
@@ -282,7 +314,12 @@ public struct NPTournamentEndDataContainer
 	/// </summary>
     public UInt32 TournamentTotalPlayers;
 
-#if UNITY_IPHONE	
+#if UNITY_IPHONE
+	/// <summary>
+	/// The player total currency amount (after the tournament ended).
+	/// </summary>
+	public UInt32 CurrentCurrencyAmount;
+	
 	/// <summary>
 	/// The player rank in the tournament (where 1 means first, 1..tournamentTotalPlayers).
 	/// </summary>
@@ -294,6 +331,19 @@ public struct NPTournamentEndDataContainer
     public UInt32 PlayerScore;
 #endif
 }
+
+[Obsolete("In-game notifications have been removed, this struct is never used.")]
+/// <summary>
+/// Contains information about in-game notifications.
+/// </summary>
+public struct NPNotificationContainer
+{
+	/// <summary>
+	/// The text of the notification.
+	/// </summary>
+	public String NotificationText;
+}
+
 #endregion
 
 #region Enums
@@ -312,12 +362,12 @@ public enum NPUIInterfaceOrientation
 /// <summary>
 /// Defines where in-game notifications (including the in-game display ranking) can appear on the screen.
 /// </summary>
-public enum NPNotificationPosition
+public enum NPNotificationPosition:int
 {
 	/// <summary>
 	/// Rankings are shown in the top-center of the screen
 	/// </summary>
-    NPNotificationPosition_TOP = 0,
+    NPNotificationPosition_TOP = 1,
 	
 	/// <summary>
 	/// Rankings are shown in the bottom-center of the screen
@@ -363,7 +413,7 @@ public enum NPRankingDisplayStyle
 	/// <summary>
 	/// Displays the ranks as a list of 2 or 3 players, centered on the current player, who is flanked by the players immediately above and below him in rank.
 	/// </summary>
-	List = 0,
+	List = 1,
 	
 	/// <summary>
 	/// Displays only the current player's avatar, and a label which indicates the rank of the current player relative to all the tournament participants. Does not show any other player.
@@ -379,7 +429,7 @@ public enum NPRankingDisplayAnimationStyle
 	/// <summary>
 	/// Optimised animation, based on the current device. Older devices will have reduced animaiton, to prevent a negative impact on performance.
 	/// </summary>
-	Optimised = 0,
+	Optimised = 1,
 	
 	/// <summary>
 	/// Full animation (on all devices). In some cases this may negatively affect performance, particularly on older devices.
@@ -400,7 +450,7 @@ public enum NPRankingDisplayAlignment
 	/// <summary>
 	/// Horizontal alignment - avatars are aligned left-to-right.
 	/// </summary>
-	Horizontal = 0,
+	Horizontal = 1,
 	
 	/// <summary>
 	/// Vertical alignment - avatars are aligned top-down.
@@ -416,7 +466,7 @@ public enum NPSynchronizedEventFireReason
 	/// <summary>
 	/// All participants have registered for the event.
 	/// </summary>
-	AllReached = 0,
+	AllReached = 1,
 	
 	/// <summary>
 	/// The registration timeout was reached before all participants registered for the event (at least one participant didn't register for the event).
@@ -485,6 +535,12 @@ public class Nextpeer : MonoBehaviour
 	/// </summary>
 	public static event Action DashboardDidReturnToGame;
 	
+	/// <summary>
+	/// Occurs when Nextpeer will hide itself in order to allow the game to display a "inter-game" screen.
+	/// Only relevant in conjunction with Nextpeer.SetShouldAllowInterGameScreen.
+	/// </summary>
+	public static event Action WillHideToShowInterGameScreen;
+	
 	// Events corresponding to TournamentDelegate:
 	
 	/// <summary>
@@ -526,6 +582,30 @@ public class Nextpeer : MonoBehaviour
 	/// The rate of tournament status updates is approximately one per second.
 	/// </summary>
 	public static event Action<NPTournamentStatusInfo> DidReceiveTournamentStatus;
+
+#if UNITY_IPHONE
+	[Obsolete("In-game notifications have been removed (and replaced by in-game ranking display), this event will never be called.")]
+	/// <summary>
+	/// Occurs when an in-game notification arrives from the server and Nextpeer.SetNextpeerNotificationAllowed(false) was called.
+	/// It is recommended to here display some sort of game specific version of the notification based on the notification data.
+	/// </summary>
+	public static event Action<NPNotificationContainer> HandleDisallowedNotification;
+	
+	[Obsolete("In-game notifications have been removed (and replaced by in-game ranking display), this event will never be called.")]
+	/// <summary>
+	/// Occurs when a notification is about to appear.
+	/// </summary>
+	public static event Action<NPNotificationContainer> NotificationWillShow;
+	
+	// Events corresponding to CurrencyDelegate:
+	
+	/// <summary>
+	/// Occurs when the current player's currency changes due to an internal event.
+	/// This may be a result of currency consumption (negative amount, for example when entering a tournament)
+	/// or a currency gain (positive amount, when winning a tournament).
+	/// </summary>
+	public static event Action<int> AddAmountToCurrency;
+#endif
 
 	#endregion
 	
@@ -607,6 +687,16 @@ public class Nextpeer : MonoBehaviour
 		
         getINextpeerInstance().LaunchDashboard();
     }
+
+#if UNITY_IPHONE
+	/// <summary>
+	/// Closes the Nextpeer dashboard.
+	/// </summary>
+	public static void DismissDashboard()
+    {
+        getINextpeerInstance().DismissDashboard();
+    }
+#endif
 	
 	#endregion
 	
@@ -659,7 +749,20 @@ public class Nextpeer : MonoBehaviour
     {
         getINextpeerInstance().ReportForfeitForCurrentTournament();
     }
-
+	
+	/// <summary>
+	/// This method will return the amount of seconds left for this tournament.
+	///
+	/// If no tournament is currently taking place then this method will return 0.
+	/// </summary>
+	/// <returns>
+	/// Time left in the tournament.
+	/// </returns>
+	public static TimeSpan TimeLeftInTournament()
+    {
+        return getINextpeerInstance().TimeLeftInTournament();
+    }
+	
 	/// <summary>
 	/// This method is used to push a byte buffer to the other players over a reliable communication channel.
 	/// 
@@ -714,6 +817,23 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RegisterToSyncEvent(eventName, timeout);
 	}
+
+#if UNITY_IPHONE
+	[Obsolete("In-game notifications have been repalced by in-game ranking display, so this method no longer has any effect. As an alterantive, consider using PushDataToOtherPlayers.")]
+	/// <summary>
+	///  This method will broadcast an in-game notification to the other players in the tournament.
+    /// The current player's image will be displayed along with the text.
+	/// 
+	/// To use the current player's name in the message use %PLAYER_NAME%.
+	/// E.g., "%PLAYER_NAME% sent you a bomb!"
+	/// </summary>
+	/// <param name='message'>
+	/// The message to send.
+	/// </param>
+	public static void PushMessageToOtherPlayers(String message)
+    {
+    }
+#endif
 	
 	#region Tournament white/black lists
 	
@@ -867,6 +987,26 @@ public class Nextpeer : MonoBehaviour
 	
 	#region Social
 
+#if UNITY_IPHONE
+	/// <summary>
+	/// Use this method to invoke the Facebook post dialog.
+	/// The user will be prompted to login if she hasn't done that before.
+	/// </summary>
+	/// <param name='message'>
+	/// Message to be displayed on the wall. Must not be null.
+	/// </param>
+	/// <param name='link'>
+	/// Link for the given post. Could link to anywhere. If null then the link would be to the app's iTunes page (what was specified in Nextpeer's dashboard).
+	/// </param>
+	/// <param name='ImageUrl'>
+	/// URL for an image to be displayed on the post. If null then the image is the app's icon as it appears in Nextpeer's dashboard.
+	/// </param>
+	public static void PostToFacebookWall(String message, String link, String ImageUrl)
+    {
+        getINextpeerInstance().PostToFacebookWall(message, link, ImageUrl);
+    }
+#endif
+
 	/// <summary>
 	/// Use this method to retrieve the current player details such as name and image.
 	/// </summary>
@@ -877,6 +1017,16 @@ public class Nextpeer : MonoBehaviour
     {
         return getINextpeerInstance().GetCurrentPlayerDetails();
     }
+
+#if UNITY_IPHONE
+	/// <summary>
+	/// Use this method to open Nextpeer's game stream.
+	/// </summary>
+	public static void OpenFeedDashboard()
+    {
+        getINextpeerInstance().OpenFeedDashboard();
+    }
+#endif
 
 	#endregion
 	
@@ -896,7 +1046,56 @@ public class Nextpeer : MonoBehaviour
 		getINextpeerInstance().EnableRankingDisplay(enableRankingDisplay);
 	}
 
-#if UNITY_IPHONE	
+#if UNITY_IPHONE
+	[Obsolete("Notification orientation should be set via the settings. See NPGameSettings.NotificationOrientation and NPGameSettings.ObserveNotificationOrientationChange.")]
+	/// <summary>
+	/// Call this method when you wish to change the in-game notification orientation in run time.
+	/// It's preferable to use the <c>NPGameSettings</c> struct if you wish to set this up at start-time.
+	/// </summary>
+	/// <param name='Orientation'>
+	/// The orientation at which in-game notifications will display.
+	/// </param>
+	public static void SetNotificationOrientation(NPUIInterfaceOrientation Orientation)
+    {
+		
+    }
+	
+	[Obsolete("In-game notifications have been removed. This method has no effect. " +
+		"In-game notifications have been replaced by the in-game ranking display. To control it, see EnableRankingDisplay(bool).")]
+	/// <summary>
+	/// Tells Nextpeer if it should display in-game notifications received from the server.
+	/// 
+	/// If you turn in-game notifications off, you can reigster to the Nextpeer.HandleDisallowedNotification event,
+	/// and display your own custom in-game notification.
+	/// </summary>
+	/// <param name='isAllowed'>
+	/// <c>true</c> to allow Nextpeer to display in-game notifications (default), <c>false</c> to disallow it.
+	/// </param>
+	public static void SetNextpeerNotificationAllowed(Boolean isAllowed)
+    {
+        
+    }
+	
+	/// <summary>
+	/// Tells Nextpeer if the game wants to display its own screens immediately after the player taps the "Play Again" button and before the next game starts.
+	/// If you implement this method, you should also register to the Nextpeer.WillHideToShowInterGameScreen event.
+	/// </summary>
+	/// <param name='allowInterGameScreen'>
+	/// <c>true</c> to allow to display an inter-game screen, <c>false</c> otherwise.
+	/// </param>
+	public static void SetAllowInterGameScreen(Boolean allowInterGameScreen)
+	{
+		getINextpeerInstance().SetAllowInterGameScreen(allowInterGameScreen);
+	}
+	
+	/// <summary>
+	/// Call this method when you have finished running the inter-game logic. The player will be taken to their next tournament.
+	/// </summary>
+	public static void ResumePlayAgainLogic()
+	{
+		getINextpeerInstance().ResumePlayAgainLogic();
+	}
+	
 	/// <summary>
 	/// You can use this method to set if Nextpeer will show an alert view if it is not supported on the current device.
 	/// 
@@ -914,6 +1113,48 @@ public class Nextpeer : MonoBehaviour
 #endif
 
 	#endregion
+
+	#region Currency
+
+	#if UNITY_IPHONE
+	
+	/// <summary>
+	/// Gets the currency amount, as stored by Nextpeer.
+	/// </summary>
+	/// <returns>
+	/// The current amount of currency that Nextpeer has for the current player.
+	/// </returns>
+	public static Int32 GetCurrencyAmount()
+    {
+    	return getINextpeerInstance().GetCurrencyAmount();
+    }
+	
+	/// <summary>
+	/// Sets the currency amount for the current player. Note that this will overwrite the previous currency amount.
+	/// </summary>
+	/// <param name='amount'>
+	/// The currency amount of the current player.
+	/// </param>
+	public static void SetCurrencyAmount(Int32 amount)
+    {
+        getINextpeerInstance().SetCurrencyAmount(amount);
+    }
+	
+	/// <summary>
+	/// Tells Nextpeer if the game supports the unified currency model. Should be called once before Nextpeer.Init.
+	/// </summary>
+	/// <param name='supported'>
+	/// <c>true</c> if the game supports the unified currency model; otherwise, <c>false</c>.
+	/// </param>
+	public static void SetSupportsUnifiedCurrency(Boolean supported)
+    {
+        getINextpeerInstance().SetSupportsUnifiedCurrency(supported);
+    }
+
+	#endif
+
+	#endregion
+
 
 	#endregion
 	
@@ -980,15 +1221,9 @@ public class Nextpeer : MonoBehaviour
 	
 	private void DidTournamentStartWithDetailsHandler()
 	{
-		NPTournamentStartDataContainer _npTournamentStartDataContainer = getINextpeerInstance().GetTournamentStartData();
-		if (WillTournamentStartWithDetails != null)
-		{
-			WillTournamentStartWithDetails(_npTournamentStartDataContainer);
-		}
-
 		if (DidTournamentStartWithDetails != null)
 		{
-			DidTournamentStartWithDetails(_npTournamentStartDataContainer);
+			DidTournamentStartWithDetails(getINextpeerInstance().GetTournamentStartData());
 		}
 	}
 	
@@ -997,6 +1232,14 @@ public class Nextpeer : MonoBehaviour
 		if (DidTournamentEnd != null)
 		{
 			DidTournamentEnd();
+		}
+	}
+	
+	private void WillTournamentStartWithDetailsHandler()
+	{
+		if (WillTournamentStartWithDetails != null)
+		{
+			WillTournamentStartWithDetails(getINextpeerInstance().GetTournamentStartData());
 		}
 	}
 	
@@ -1037,6 +1280,14 @@ public class Nextpeer : MonoBehaviour
 		if (DashboardDidReturnToGame != null)
 		{
 			DashboardDidReturnToGame();
+		}
+	}
+	
+	private void WillHideToShowInterGameScreenHandler()
+	{
+		if (WillHideToShowInterGameScreen != null)
+		{
+			WillHideToShowInterGameScreen();
 		}
 	}
 	
@@ -1090,6 +1341,14 @@ public class Nextpeer : MonoBehaviour
 			getINextpeerInstance().RemoveStoredObjectWithId(objectId);
 		}
 	}
+
+	private void DidReceiveTournamentResultsHandler()
+	{
+		if (DidReceiveTournamentResults != null)
+		{
+			DidReceiveTournamentResults(getINextpeerInstance().GetTournamentResult());
+		}
+	}
 	
 	private void DidReceiveSynchronizedEventHandler(string objectId)
 	{
@@ -1107,31 +1366,14 @@ public class Nextpeer : MonoBehaviour
 			getINextpeerInstance().RemoveStoredObjectWithId(objectId);
 		}
 	}
-	
-#if UNITY_ANDROID
-	private void DidReceiveTournamentResultsHandler()
+
+#if UNITY_IPHONE
+	private void AddAmountToCurrencyHandler(string currencyDelta)
 	{
-		if (DidReceiveTournamentResults != null)
+		if (AddAmountToCurrency != null)
 		{
-			DidReceiveTournamentResults(getINextpeerInstance().GetTournamentResult());
+			AddAmountToCurrency(int.Parse(currencyDelta));
 		}
-	}
-#endif
-
-#if UNITY_ANDROID
-	private IEnumerator TakeScreenshot()
-	{
-		yield return new WaitForEndOfFrame();
-
-		int width = Screen.width;
-		int height = Screen.height;
-		Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
-		tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-
-		byte[] bytes = tex.EncodeToPNG();
-		Destroy(tex);
-
-		getINextpeerInstance().PushScreenshot(bytes);
 	}
 #endif
 	

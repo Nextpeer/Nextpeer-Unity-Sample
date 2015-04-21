@@ -142,6 +142,10 @@ public class NextpeerAndroid : INextpeer
 		_nextpeer.CallStatic("launch");
 	}
 
+	public void DismissDashboard()
+	{
+	}
+
 	public bool IsCurrentlyInTournament()
 	{
 		return _nextpeer.CallStatic<bool>("isCurrentlyInTournament");
@@ -160,6 +164,11 @@ public class NextpeerAndroid : INextpeer
 	public void ReportForfeitForCurrentTournament()
 	{
 		_nextpeer.CallStatic("reportForfeitForCurrentTournament");
+	}
+
+	public TimeSpan TimeLeftInTournament()
+	{
+		return new TimeSpan(0, 0, _nextpeer.CallStatic<int>("timeLeftForTournament"));
 	}
 
 	public void PushDataToOtherPlayers(byte[] data)
@@ -202,6 +211,10 @@ public class NextpeerAndroid : INextpeer
 		_nextpeer.CallStatic("clearTournamentBlacklist");
 	}
 
+	public void PostToFacebookWall(String message, String link, String ImageUrl)
+	{
+	}
+
 	public NPGamePlayerContainer GetCurrentPlayerDetails()
 	{
 		AndroidJavaObject javaPlayer = _nextpeer.CallStatic<AndroidJavaObject>("getCurrentPlayerDetails");
@@ -213,10 +226,35 @@ public class NextpeerAndroid : INextpeer
 
 		return result;
 	}
-	
+
+	public void OpenFeedDashboard()
+	{
+	}
+
+	public Int32 GetCurrencyAmount()
+	{
+		return 0;
+	}
+
+	public void SetCurrencyAmount(Int32 amount)
+	{
+	}
+
+	public void SetSupportsUnifiedCurrency(Boolean supported)
+	{
+	}
+
 	public void EnableRankingDisplay(bool enableRankingDisplay)
 	{
 		_nextpeer.CallStatic("enableRankingDisplay", enableRankingDisplay);
+	}
+
+	public void SetAllowInterGameScreen(Boolean allowInterGameScreen)
+	{
+	}
+
+	public void ResumePlayAgainLogic()
+	{
 	}
 
 	public void SetNextpeerNotSupportedShouldShowCustomErrors(Boolean ShowError)
@@ -229,8 +267,10 @@ public class NextpeerAndroid : INextpeer
 		NPTournamentStartDataContainer result = new NPTournamentStartDataContainer();
 
 		result.TournamentUUID = javaStartData.Get<string>("tournamentUuid");
+		result.TournamentTimeSeconds = (uint)javaStartData.Get<int>("tournamentTimeSeconds");
 		result.TournamentRandomSeed = unchecked( (uint)javaStartData.Get<int>("tournamentRandomSeed") );
 		result.TournamentName = javaStartData.Get<string>("tournamentName");
+		result.TournamentIsGameControlled = javaStartData.Get<bool>("tournamentIsGameControlled");
 		result.TournamentNumberOfPlayers = (uint)javaStartData.Get<int>("numberOfPlayers");
 		result.CurrentPlayer = GetTournamentPlayer(javaStartData.Get<AndroidJavaObject>("currentPlayer"));
 		
@@ -404,11 +444,6 @@ public class NextpeerAndroid : INextpeer
 	}
 	public void RequestStopRecording(String userId){
 		_nextpeer.CallStatic("requestStopRecording", userId);		
-	}
-
-	public void PushScreenshot(byte[] pngData)
-	{
-		_nextpeer.CallStatic("pushScreenshot", pngData);
 	}
 }
 

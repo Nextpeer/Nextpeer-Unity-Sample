@@ -51,10 +51,12 @@ struct _NPGamePlayerContainer
     const char* PlayerId;
     const char* PlayerName;
     const char* ProfileImageURL;
+    bool IsSocialAuthenticated;
 };
 
 struct _NPGameSettings
 {
+    const char* displayName;
     int32_t notificationOrientation;
     bool observeNotificationOrientationChange;
     int32_t notificationPosition;
@@ -72,19 +74,28 @@ struct _NPTournamentPlayer
     char* imageUrl;
     bool isBot;
     bool isCurrentUser;
-    bool isStillPlaying;
-    bool didForfeit;
-    uint32_t score;
 };
 
 struct _NPTournamentStartDataContainer
 {
     char* mTournamentUuid;
     char* mTournamentName;
+    uint32_t mTournamentTimeSeconds;
     uint32_t mTournamentRandomSeed;
+    bool mTournamentIsGameControlled;
     uint32_t mNumberOfPlayers;
     _NPTournamentPlayer* mCurrentPlayer;
     _NPTournamentPlayer* mOpponents;
+};
+
+struct _NPTournamentEndDataContainer
+{
+    char* mTournamentUuid;
+    char* mPlayerName;
+    int32_t mTournamentTotalPlayers;
+    int32_t mCurrentCurrencyAmount;
+    int32_t mPlayerRankInTournament;
+    int32_t mPlayerScore;
 };
 
 struct _NPTournamentCustomMessageContainer
@@ -103,10 +114,22 @@ struct _NPSyncEventInfo
     int32_t syncEventFireReason;
 };
 
+struct _NPTournamentPlayerResults
+{
+    const char* playerName;
+    const char* playerId;
+    const char* playerImageUrl;
+    bool playerIsBot;
+    bool playerIsCurrentUser;
+    bool isStillPlaying;
+    bool didForfeit;
+    uint32_t score;
+};
+
 struct _NPTournamentStatusInfo
 {
     int32_t numberOfResults;
-    _NPTournamentPlayer* results;
+    _NPTournamentPlayerResults* results;
 };
 
 extern "C" {
@@ -142,7 +165,9 @@ extern "C" {
     // Nextpeer delegates accessors
     _NPTournamentStartDataContainer _NPGetTournamentStartData();
     void _NPLaunchDashboard();
+    void _NPDismissDashboard();
     bool _NPIsNextpeerSupported();
+    void _NPPostToFacebookWallMessage(const char *message, const char *link, const char *imageUrl);
     _NPGamePlayerContainer _NPGetCurrentPlayerDetails();
     void _NPPushDataToOtherPlayers(const char *data, int32_t size);
     void _NPUnreliablePushDataToOtherPlayers(const char *data, int32_t size);
@@ -151,12 +176,27 @@ extern "C" {
     bool _NPIsCurrentlyInTournament();
     void _NPReportForfeitForCurrentTournament();
     void _NPReportControlledTournamentOverWithScore(uint32_t score);
+    uint32_t _NPTimeLeftInTournament();
     
     // Tournament
     bool _NPConsumeCustomMessage(const char* MessageID, _NPTournamentCustomMessageContainer* message);
     _NPTournamentStatusInfo _NPConsumeTournamentStatusInfo(const char* MessageID);
     void _NPRemoveStoredObjectWithId(const char* messageID);
+    _NPTournamentEndDataContainer _NPGetTournamentResult();
     bool _NPConsumeSyncEvent(const char* syncEventObjectId, _NPSyncEventInfo* syncEventInfo);
+    
+    // Inter-game screen logic
+    void _NPSetShouldAllowInterGameScreen(bool allowInterGameScreen);
+    void _NPResumePlayAgainLogic();
+    
+    // Currency
+    int32_t _NPGetCurrencyAmount();
+    void _NPSetCurrencyAmount(NSInteger amount);
+    bool _NPIsUnifiedCurrencySupported();
+    void _NPSwitchUnifiedCurrencySupported(bool isSupported);
+    
+    // Feeds
+    void _NPOpenFeedDashboard();
     
     // Notifications
     void _NPEnableRankingDisplay(bool enableRankingDisplay);

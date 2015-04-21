@@ -1,25 +1,29 @@
 #!/usr/bin/python
 import os
 import sys
+import glob
 import shutil
-import json
+import plistlib
 from distutils.version import LooseVersion
 
 from mod_pbxproj import XcodeProject
 
 
 NP_DID_RUN_FILE = ".npdidrun"
-CONFIGURATION_FILE_NAME = "config.json"
 
 
 def main():
     script_path = os.path.abspath(os.path.dirname(__file__))
     ios_path = os.path.abspath(sys.argv[1])
     unity_assets_path = os.path.abspath(sys.argv[2])
-    np_resources_bundle = "NPResources.bundle"
-    ios_sdk_version = sys.argv[3]
-    unity_version = sys.argv[4]
+    np_resources_bundle = sys.argv[3]
+    ios_sdk_version = sys.argv[4]
+    unity_version = sys.argv[5]
     np_xcode_path = os.path.normpath(os.path.join(script_path, "XcodeFiles"))
+
+    fb_sso_url_scheme = None
+    if len(sys.argv) >= 7:
+        fb_sso_url_scheme = sys.argv[6]
     
     print 'Nextpeer path: ' + script_path
     print 'Xcode project path: ' + ios_path
@@ -35,9 +39,6 @@ def main():
         print "Build was already patched, doing nothing. Enjoy Nextpeer!"
         return
 
-    # Load configuration (for future use):
-    config = load_config(os.path.join(unity_assets_path, "Editor", "Nextpeer", CONFIGURATION_FILE_NAME))
-
     # Extract Nextpeer SDK into the Xcode project:
     np_sdk_zip = os.path.join(script_path, "NextpeerSDK.zip")
     if not os.path.exists(np_sdk_zip):
@@ -45,10 +46,14 @@ def main():
     cmd = 'unzip -o -qq "' + os.path.join(np_sdk_zip) + '" -d "' + ios_path + '"'
     os.system(cmd)
     
-    # Verify the path of the resources bundle to use:
-    selected_bundle_path = os.path.join(ios_path, "NextpeerSDK", np_resources_bundle)
-    if not os.path.exists(selected_bundle_path):
-        raise Exception("Requested bundle was not found - unable to add Nextpeer to Xcode project (expected %s)" % selected_bundle_path)
+    # Find the path of the resources bundle to use:
+    selected_bundle_path = None
+    for bundle in glob.glob(os.path.join(ios_path, "NextpeerSDK/Resources/*.bundle")):
+        if bundle.endswith(np_resources_bundle):
+            selected_bundle_path = os.path.join(ios_path, "NextpeerSDK/Resources", os.path.basename(bundle))
+    
+    if selected_bundle_path == None:
+        raise Exception("Requested bundle was not found - unable to add Nextpeer to Xcode project (expected %s)" % np_resources_bundle)
     
     # Open the Xcode project for editing:
     xcode_project_path = os.path.join(ios_path, 'Unity-iPhone.xcodeproj/project.pbxproj')
@@ -70,12 +75,19 @@ def main():
     frameworks_parent = project.get_or_create_group("Frameworks", parent=parent)
     
     # Required
-    for f in ("CoreText", "OpenGLES", "Security", "MobileCoreServices", "StoreKit", "SystemConfiguration", "CFNetwork", "MessageUI", "QuartzCore", "UIKit", "CoreGraphics", "Foundation", "AVFoundation", "AssetsLibrary", "ImageIO", "Social"):
+    for f in ("CoreText", "OpenGLES", "Security", "MobileCoreServices", "StoreKit", "SystemConfiguration", "CFNetwork", "MessageUI", "QuartzCore", "UIKit", "CoreGraphics", "Foundation"):
         project.add_file(os.path.join(system_frameworks_path, f+'.framework'), parent=frameworks_parent, tree='SDKROOT', weak=False)
 
     # Optional
     for f in ("AdSupport", ):
         project.add_file(os.path.join(system_frameworks_path, f+'.framework'), parent=frameworks_parent, tree='SDKROOT', weak=True)    
+    
+    # Add libs:
+    print "Adding system libs"
+    system_libs_path = 'usr/lib'
+    libs_parent = project.get_or_create_group('Libraries', parent=parent)
+    for l in ["libz.dylib", "libsqlite3.dylib"]:
+        project.add_file(os.path.join(system_libs_path, l), parent=libs_parent, tree='SDKROOT')    
     
     # Add all source files from Classes directory:
     print "Adding Nextpeer sources"
@@ -110,14 +122,12 @@ def main():
     main_file_text = None
     with open(main_file_path, "rb") as main_file_reader:
         main_file_text = main_file_reader.read()
-        
         if LooseVersion(unity_version) >= LooseVersion("4.2"):
             main_file_text = main_file_text.replace(r'const char* AppControllerClassName = "UnityAppController";',
-                                                     r'const char* AppControllerClassName = "NextpeerAppController";')
+                                                    r'const char* AppControllerClassName = "NextpeerAppController";')
         else:
             main_file_text = main_file_text.replace(r'UIApplicationMain(argc, argv, nil, @"AppController");',
                                                     r'UIApplicationMain(argc, argv, nil, @"NextpeerAppController");')
-        
     if main_file_text is not None:
         with open(main_file_path, "wb") as main_file_writer:
             main_file_writer.write(main_file_text)
@@ -159,7 +169,7 @@ def main():
     # patch that file to always register our functions.
     # Currently, we'll always perform this patch, because the dev may switch the SDK type and perform an append
     # (in which case our Python post-build script won't run).
-    if False: #ios_sdk_version == "SimulatorSDK":
+    if True: #ios_sdk_version == "SimulatorSDK":
         # We assume the format of RegisterMonoModules to remain the same for some time - it didn't change between Unity 3 and 4.
 
         rmm_file_path = os.path.join(ios_path, "Libraries/RegisterMonoModules.cpp")
@@ -205,6 +215,27 @@ def main():
             with open(rmm_file_path, "wb") as rmm_writer:
                 rmm_writer.writelines(func_lines)
 
+    # Patch Info.plist to add the Facebook SSO URL scheme if required:
+    if fb_sso_url_scheme is not None:
+        print "Adding Facebook SSO URL Scheme to Info.plist"
+        info_plist_path = os.path.join(ios_path, "Info.plist")
+        info_plist = plistlib.readPlist(info_plist_path)
+
+        url_scheme_exists = False
+        if 'CFBundleURLTypes' not in info_plist:
+            info_plist['CFBundleURLTypes'] = []
+
+        url_types = info_plist['CFBundleURLTypes']
+        for url_type_dict in url_types:
+            if 'CFBundleURLSchemes' not in url_type_dict:
+                continue
+            if fb_sso_url_scheme in url_type_dict['CFBundleURLSchemes']:
+                break
+        else:
+            url_types.append({'CFBundleURLSchemes': [fb_sso_url_scheme]})
+            plistlib.writePlist(info_plist, info_plist_path)
+        
+
     # Mark the build as patched by creating an empty file to serve as a flag:
     with open(os.path.join(ios_path, NP_DID_RUN_FILE), "wb"):
         pass
@@ -216,14 +247,6 @@ def _find_in_list(func, lst):
             return ix
 
     return -1
-
-def load_config(config_file_path):
-    if not os.path.exists(config_file_path):
-        return {}
-    
-    with open(config_file_path, "rb") as config_file:
-        return json.load(config_file)
-    
 
 
 if __name__ == '__main__':

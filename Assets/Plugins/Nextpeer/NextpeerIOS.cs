@@ -27,6 +27,7 @@ public class NextpeerIOS : INextpeer
 		MSettings settingsVal = new MSettings();
 		
 		// Setting defaults for unspecified values, to avoid dealing with passing nulls to Objective-C++:
+		settingsVal.DisplayName = userSettings.DisplayName ?? "";
 		settingsVal.NotificationOrientation = userSettings.NotificationOrientation ?? 0;
 		settingsVal.ObserveNotificationOrientationChange = userSettings.ObserveNotificationOrientationChange ?? false;
 		settingsVal.NotificationPosition = userSettings.NotificationPosition ?? NPNotificationPosition.NPNotificationPosition_TOP;
@@ -43,6 +44,11 @@ public class NextpeerIOS : INextpeer
 	public void LaunchDashboard()
     {
         _NPLaunchDashboard();
+    }
+	
+	public void DismissDashboard()
+    {
+        _NPDismissDashboard();
     }
 	
 	public bool IsCurrentlyInTournament()
@@ -63,6 +69,11 @@ public class NextpeerIOS : INextpeer
 	public void ReportForfeitForCurrentTournament()
     {
         _NPReportForfeitForCurrentTournament();
+    }
+	
+	public TimeSpan TimeLeftInTournament()
+    {
+        return new TimeSpan(0, 0, (int)_NPTimeLeftInTournament());
     }
 	
 	public void PushDataToOtherPlayers(byte[] data)
@@ -105,9 +116,24 @@ public class NextpeerIOS : INextpeer
 		_NPClearTournamentWhitelist();
 	}
 	
+	public void PostToFacebookWall(String message, String link, String ImageUrl)
+    {
+        if (link == null)
+            link = "";
+        if (ImageUrl == null)
+            ImageUrl = "";
+
+        _NPPostToFacebookWallMessage(message, link, ImageUrl);
+    }
+	
 	public NPGamePlayerContainer GetCurrentPlayerDetails()
     {
         return _NPGetCurrentPlayerDetails();
+    }
+	
+	public void OpenFeedDashboard()
+    {
+        _NPOpenFeedDashboard();
     }
 	
 	public void EnableRankingDisplay(bool enableRankingDisplay)
@@ -115,10 +141,34 @@ public class NextpeerIOS : INextpeer
 		_NPEnableRankingDisplay(enableRankingDisplay);
 	}
 	
+	public void SetAllowInterGameScreen(Boolean allowInterGameScreen)
+	{
+		_NPSetShouldAllowInterGameScreen(allowInterGameScreen);
+	}
+	
+	public void ResumePlayAgainLogic()
+	{
+		_NPResumePlayAgainLogic();
+	}
 	
 	public void SetNextpeerNotSupportedShouldShowCustomErrors(Boolean ShowError)
     {
         _NPSetNextpeerNotSupportedShouldShowErrors(ShowError);
+    }
+	
+	public Int32 GetCurrencyAmount()
+    {
+        return _NPGetCurrencyAmount();
+    }
+	
+	public void SetCurrencyAmount(Int32 amount)
+    {
+        _NPSetCurrencyAmount(amount);
+    }
+	
+	public void SetSupportsUnifiedCurrency(Boolean supported)
+    {
+        _NPSwitchUnifiedCurrencySupported(supported);
     }
 	
 	public NPTournamentStartDataContainer GetTournamentStartData()
@@ -126,9 +176,11 @@ public class NextpeerIOS : INextpeer
 		NPTournamentStartDataContainer result = new NPTournamentStartDataContainer();
 		
         _NPTournamentStartDataContainer startData = _NPGetTournamentStartData();
-		result.TournamentUUID = Marshal.PtrToStringAnsi(startData.TournamentUuid);
-		result.TournamentName = Marshal.PtrToStringAnsi(startData.TournamentName);
+		result.TournamentUUID = startData.TournamentUuid;
+		result.TournamentName = startData.TournamentName;
+		result.TournamentTimeSeconds = startData.TournamentDurationInSeconds;
 		result.TournamentRandomSeed = startData.TournamentRandomSeed;
+		result.TournamentIsGameControlled = startData.TournamentIsGameControlled;
 		result.TournamentNumberOfPlayers = startData.NumberOfPlayers;
 		
 		int tournamentPlayerStructSize = Marshal.SizeOf(typeof(_NPTournamentPlayer));
@@ -149,9 +201,9 @@ public class NextpeerIOS : INextpeer
 	{
 		NPTournamentPlayer result = new NPTournamentPlayer();
 		
-		result.PlayerName = Marshal.PtrToStringAnsi(player.Name);
-		result.PlayerId = Marshal.PtrToStringAnsi(player.Id);
-		result.PlayerImageUrl = Marshal.PtrToStringAnsi(player.ImageUrl);
+		result.PlayerName = player.Name;
+		result.PlayerId = player.Id;
+		result.PlayerImageUrl = player.ImageUrl;
 		result.PlayerIsBot = player.IsBot;
 		result.IsCurrentUser = player.IsCurrentUser;
 		
@@ -197,28 +249,27 @@ public class NextpeerIOS : INextpeer
 		
 		NPTournamentStatusInfo result;
 		
-		int tournamentPlayerResultsStructSize = Marshal.SizeOf(typeof(_NPTournamentPlayer));
+		int tournamentPlayerResultsStructSize = Marshal.SizeOf(typeof(_NPTournamentPlayerResults));
 		result.SortedResults = new NPTournamentPlayerResults[marshalledStatusInfo.NumberOfResults];
 		for (int resultIndex = 0; resultIndex < marshalledStatusInfo.NumberOfResults; resultIndex++)
 		{
-			_NPTournamentPlayer marshalledPlayer = 
-				(_NPTournamentPlayer)Marshal.PtrToStructure(new IntPtr(marshalledStatusInfo.SortedResultsPtr.ToInt64() + tournamentPlayerResultsStructSize*resultIndex),
-					typeof(_NPTournamentPlayer));
-
+			_NPTournamentPlayerResults marshalledPlayerResults = 
+				(_NPTournamentPlayerResults)Marshal.PtrToStructure(new IntPtr(marshalledStatusInfo.SortedResultsPtr.ToInt64() + tournamentPlayerResultsStructSize*resultIndex),
+					typeof(_NPTournamentPlayerResults));
 			
 			NPTournamentPlayer player = new NPTournamentPlayer() {
-				PlayerName = Marshal.PtrToStringAnsi(marshalledPlayer.Name),
-				PlayerId = Marshal.PtrToStringAnsi(marshalledPlayer.Id),
-				PlayerImageUrl = Marshal.PtrToStringAnsi(marshalledPlayer.ImageUrl),
-				PlayerIsBot = marshalledPlayer.IsBot,
-				IsCurrentUser = marshalledPlayer.IsCurrentUser
+				PlayerName = marshalledPlayerResults.PlayerName,
+				PlayerId = marshalledPlayerResults.PlayerId,
+				PlayerImageUrl = marshalledPlayerResults.PlayerImageUrl,
+				PlayerIsBot = marshalledPlayerResults.PlayerIsBot,
+				IsCurrentUser = marshalledPlayerResults.PlayerIsCurrentUser
 			};
 			
 			NPTournamentPlayerResults playerResults = new NPTournamentPlayerResults() {
 				Player = player,
-				IsStillPlaying = marshalledPlayer.IsStillPlaying,
-				DidForfeit = marshalledPlayer.DidForfeit,
-				Score = marshalledPlayer.Score
+				IsStillPlaying = marshalledPlayerResults.IsStillPlaying,
+				DidForfeit = marshalledPlayerResults.DidForfeit,
+				Score = marshalledPlayerResults.Score
 			};
 			
 			result.SortedResults[resultIndex] = playerResults;
@@ -226,6 +277,11 @@ public class NextpeerIOS : INextpeer
 		
 		return result;
 	}
+	
+	public NPTournamentEndDataContainer GetTournamentResult()
+    {
+        return _NPGetTournamentResult();
+    }
 	
 	public void RegisterToSyncEvent(string eventName, TimeSpan timeout)
 	{
@@ -274,6 +330,7 @@ public class NextpeerIOS : INextpeer
 	// Marhsalling nullable types (used in NPGameSettings) isn't an option, so we need an intermediate struct to pass the settings to Objective C++.
 	private struct MSettings
     {
+        public String DisplayName;
         public NPUIInterfaceOrientation NotificationOrientation;
 		[MarshalAs(UnmanagedType.I1)]
         public Boolean ObserveNotificationOrientationChange;
@@ -302,6 +359,22 @@ public class NextpeerIOS : INextpeer
 		public IntPtr SortedResultsPtr;
 	}
 	
+	private struct _NPTournamentPlayerResults
+	{
+		public String PlayerName;
+		public String PlayerId;
+		public String PlayerImageUrl;
+		[MarshalAs(UnmanagedType.I1)]
+		public Boolean PlayerIsBot;
+		[MarshalAs(UnmanagedType.I1)]
+		public Boolean PlayerIsCurrentUser;
+		[MarshalAs(UnmanagedType.I1)]
+		public Boolean IsStillPlaying;
+		[MarshalAs(UnmanagedType.I1)]
+		public Boolean DidForfeit;
+		public UInt32 Score;
+	}
+	
 	private struct _NPSyncEventInfo
 	{
 		public IntPtr EventName;
@@ -310,26 +383,23 @@ public class NextpeerIOS : INextpeer
 	
 	private struct _NPTournamentPlayer
 	{
-		public IntPtr Name;
-		public IntPtr Id;
-		public IntPtr ImageUrl;
+		public String Name;
+		public String Id;
+		public String ImageUrl;
 		[MarshalAs(UnmanagedType.I1)]
 		public Boolean IsBot;
 		[MarshalAs(UnmanagedType.I1)]
 		public Boolean IsCurrentUser;
-		[MarshalAs(UnmanagedType.I1)]
-		public Boolean IsStillPlaying;
-		[MarshalAs(UnmanagedType.I1)]
-		public Boolean DidForfeit;
-		public UInt32 Score;
 	}
 	
 	private struct _NPTournamentStartDataContainer
 	{
-		public IntPtr TournamentUuid;
-		public IntPtr TournamentName;
+		public String TournamentUuid;
+		public String TournamentName;
+		public UInt32 TournamentDurationInSeconds;
 		public UInt32 TournamentRandomSeed;
 		[MarshalAs(UnmanagedType.I1)]
+		public Boolean TournamentIsGameControlled;
 		public UInt32 NumberOfPlayers;
 		public IntPtr CurrentPlayerPtr;
 		public IntPtr OpponentsPtr;
@@ -348,7 +418,11 @@ public class NextpeerIOS : INextpeer
     [DllImport("__Internal")]
     private static extern void _NPLaunchDashboard();
     [DllImport("__Internal")]
+    private static extern void _NPDismissDashboard();
+    [DllImport("__Internal")]
     private static extern bool _NPIsNextpeerSupported();
+    [DllImport("__Internal")]
+    private static extern void _NPPostToFacebookWallMessage(String message, String link, String ImageUrl);
     [DllImport("__Internal")]
     private static extern NPGamePlayerContainer _NPGetCurrentPlayerDetails();
     [DllImport("__Internal")]
@@ -363,14 +437,26 @@ public class NextpeerIOS : INextpeer
     private static extern void _NPReportForfeitForCurrentTournament();
 	[DllImport("__Internal")]
     private static extern void _NPReportControlledTournamentOverWithScore(UInt32 score);
+    [DllImport("__Internal")]
+    private static extern UInt32 _NPTimeLeftInTournament();
 	[DllImport("__Internal")]
 	private static extern void _NPRegisterToSynchronizedEvent(String eventName, double timeout);
-	
-	  // In memory data access dedicated methods
-     // Tournament --------------------------------------------------------
-    [DllImport("__Internal")]
-    private static extern _NPTournamentStartDataContainer _NPGetTournamentStartData();		
 
+    // In memory data access dedicated methods
+    // Tournament --------------------------------------------------------
+    [DllImport("__Internal")]
+    private static extern _NPTournamentStartDataContainer _NPGetTournamentStartData();
+    
+    [DllImport("__Internal")]
+    private static extern NPTournamentEndDataContainer _NPGetTournamentResult();
+	
+	[DllImport("__Internal")]
+	private static extern void _NPResumePlayAgainLogic();
+	
+	
+	[DllImport("__Internal")]
+	private static extern void _NPSetShouldAllowInterGameScreen(Boolean allowInterGameScreen);
+	
 
     // Tournament IDs management methods -----------------------------------------------------------
     [DllImport("__Internal")]
@@ -441,6 +527,21 @@ public class NextpeerIOS : INextpeer
     // Notifications -----------------------------------------------------
 	[DllImport("__Internal")]
     private static extern void _NPEnableRankingDisplay([MarshalAs(UnmanagedType.I1)] Boolean EnableRankingDisplay);
+
+    // Currency ----------------------------------------------------------
+    // Initialise nextpeer with Currencies to be able to use these methods
+    // Also, the Game must support Currencies (see your Nextpeer
+    // developper account for more informations).
+    [DllImport("__Internal")]
+    private static extern Int32 _NPGetCurrencyAmount();
+    [DllImport("__Internal")]
+    private static extern void _NPSetCurrencyAmount(Int32 amount);
+    [DllImport("__Internal")]
+    private static extern Boolean _NPIsUnifiedCurrencySupported();
+    [DllImport("__Internal")]
+    private static extern void _NPSwitchUnifiedCurrencySupported([MarshalAs(UnmanagedType.I1)] Boolean isSupported);
+    [DllImport("__Internal")]
+    private static extern void _NPOpenFeedDashboard();
 
 	#endregion
 	
