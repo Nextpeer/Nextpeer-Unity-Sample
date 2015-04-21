@@ -129,6 +129,7 @@ public class NextpeerGameManager : MonoBehaviour
 
     private void DidTournamentStartWithDetails(NPTournamentStartDataContainer startInfo)
     {
+		WillTournamentStartWithDetails(startInfo);
         GUIDisableAll();
         guiInGame.gameObject.SetActiveRecursively(true);
         EnterGame();
