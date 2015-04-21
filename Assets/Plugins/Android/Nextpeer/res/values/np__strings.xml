@@ -15,7 +15,7 @@
     <string name="np__string_service_general_button_cancel_key">general.cancel.button</string>
     <string name="np__string_service_default_user_name_key">general.player.nameRepresentationWhenNotSignIn.label</string>
     <string name="np__string_service_launch_no_network_error_key">general.launchNextpeer.noNetwork.label</string>
-    <string name="np__string_service_general_signed_out_text_key">general.error.signedOut</string>
+    <string name="np__string_service_general_signed_out_text_key">general.error.signedOut.label</string>
     
     <string name="np__string_service_avatar_picker_status_failed_fetching_label_key">avatarPicker.status.failedFetching.label</string>
     
