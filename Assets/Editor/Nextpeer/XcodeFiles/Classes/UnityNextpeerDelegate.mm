@@ -1,6 +1,8 @@
 #include "UnityNextpeerDelegate.h"
+#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
+
 #include "NPConstants.h"
-#include "iPhone_target_Prefix.pch"
 #include "NextpeerAppController.h"
 #import "NPTournamentObjectsContainer.h"
 

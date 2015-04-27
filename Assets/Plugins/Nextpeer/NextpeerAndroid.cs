@@ -336,7 +336,7 @@ public class NextpeerAndroid : INextpeer
 	
 	public void RegisterToSyncEvent(string eventName, TimeSpan timeout)
 	{
-		_nextpeer.CallStatic("registerToSynchronizedEvent", eventName, (int)timeout.TotalMilliseconds);
+		_nextpeer.CallStatic("registerToSynchronizedEvent", eventName, (int)timeout.TotalSeconds);
 	}
 	
 	public bool ConsumeSyncEventInfo(string syncEventInfoId, ref string eventName, ref NPSynchronizedEventFireReason fireReason)
@@ -406,10 +406,15 @@ public class NextpeerAndroid : INextpeer
 		_nextpeer.CallStatic("requestStopRecording", userId);		
 	}
 
-	public void PushScreenshot(byte[] pngData)
-	{
-		_nextpeer.CallStatic("pushScreenshot", pngData);
-	}
+    public bool FrameStart(int width, int height)
+    {
+		return _nextpeer.CallStatic<bool>("frameStart", width, height);
+    }
+        
+	public void FrameEnd()
+    {
+		_nextpeer.CallStatic("frameEnd");
+    }
 }
 
 #endif

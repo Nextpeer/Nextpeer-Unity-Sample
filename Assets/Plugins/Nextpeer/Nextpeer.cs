@@ -1119,20 +1119,28 @@ public class Nextpeer : MonoBehaviour
 #endif
 
 #if UNITY_ANDROID
-	private IEnumerator TakeScreenshot()
-	{
-		yield return new WaitForEndOfFrame();
+	private IEnumerator RequestNextFrameNotifications()
+    {
+        Debug.Log("Frame notifications requested, waiting for end of frame");
+        yield return new WaitForEndOfFrame();
 
-		int width = Screen.width;
-		int height = Screen.height;
-		Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
-		tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+		bool fbBound = getINextpeerInstance().FrameStart(Screen.width, Screen.height);
 
-		byte[] bytes = tex.EncodeToPNG();
-		Destroy(tex);
+		if (fbBound) {
+			foreach (Camera cam in Camera.allCameras) {
+				if (!cam.enabled) {
+					Debug.Log ("Skipping disabled camera " + cam.name + " (depth=" + cam.depth + ")");
+				} else if (cam.targetTexture != null) {
+					Debug.Log ("Skipping off-screen camera " + cam.name + " (depth=" + cam.depth + ")");
+				} else {
+					Debug.Log ("Rendering camera " + cam.name + " (depth=" + cam.depth + ")");
+					cam.Render ();
+				}
+			}
+		}
 
-		getINextpeerInstance().PushScreenshot(bytes);
-	}
+		getINextpeerInstance().FrameEnd();
+    }
 #endif
 	
 	#endregion

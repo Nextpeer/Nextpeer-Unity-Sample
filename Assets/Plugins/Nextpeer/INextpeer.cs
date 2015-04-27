@@ -47,7 +47,8 @@ public interface INextpeer
 	//Android only
 	#if UNITY_ANDROID
 	NPTournamentEndDataContainer GetTournamentResult();
-	void PushScreenshot(byte[] pngData);
+	bool FrameStart(int width, int height);
+    void FrameEnd();
 	#endif
 
 }

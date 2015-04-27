@@ -1,6 +1,7 @@
 #include "UnityTournamentDelegate.h"
+#import <UIKit/UIKit.h>
+#import <Foundation/Foundation.h>
 
-#include "iPhone_target_Prefix.pch"
 #include "NPConstants.h"
 #import "NPTournamentObjectsContainer.h"
 
