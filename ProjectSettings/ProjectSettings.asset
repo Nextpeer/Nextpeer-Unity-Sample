@@ -72,7 +72,7 @@ PlayerSettings:
   metroEnableIndependentInputSource: 0
   metroEnableLowLatencyPresentationAPI: 0
   productGUID: a6856e47b04fc4c36858bd02c38f937f
-  iPhoneBundleVersion: 2.3.8
+  iPhoneBundleVersion: 2.4.4
   iPhoneShortBundleVersion: 1.0
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 13
@@ -262,7 +262,7 @@ PlayerSettings:
   intPropertyNames:
   - iOS::Architecture
   - iOS::ScriptingBackend
-  iOS::Architecture: 2
+  iOS::Architecture: 0
   iOS::ScriptingBackend: 0
   firstStreamedLevelWithResources: 0
   unityRebuildLibraryVersion: 9
