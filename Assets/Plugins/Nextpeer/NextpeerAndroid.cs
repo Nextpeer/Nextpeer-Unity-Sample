@@ -339,6 +339,11 @@ public class NextpeerAndroid : INextpeer
 		_nextpeer.CallStatic("registerToSynchronizedEvent", eventName, (int)timeout.TotalSeconds);
 	}
 	
+	public void CaptureMoment()
+	{
+		_nextpeer.CallStatic("captureMoment");
+	}
+	
 	public bool ConsumeSyncEventInfo(string syncEventInfoId, ref string eventName, ref NPSynchronizedEventFireReason fireReason)
 	{
 		AndroidJavaObject javaMessage = null;

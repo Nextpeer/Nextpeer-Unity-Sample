@@ -26,6 +26,7 @@ public interface INextpeer
 	void EnableRankingDisplay(bool enableRankingDisplay);
 	void SetNextpeerNotSupportedShouldShowCustomErrors(Boolean ShowError);
 	void RegisterToSyncEvent(string eventName, TimeSpan timeout);
+	void CaptureMoment();
 	//Recording manipulation
 	void ReportScoreModifier (String userId, Int32 scoreModifier);
 	void RequestFastForwardRecording (String userId, TimeSpan timeDelta);

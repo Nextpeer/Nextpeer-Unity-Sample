@@ -227,4 +227,9 @@ extern "C" {
     {
         [Nextpeer enableRankingDisplay:enableRankingDisplay];
     }
+    
+    void _NPCaptureMoment()
+    {
+        [Nextpeer captureMoment];
+    }
 }

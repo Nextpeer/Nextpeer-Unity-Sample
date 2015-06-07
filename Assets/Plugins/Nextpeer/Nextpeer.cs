@@ -714,6 +714,16 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RegisterToSyncEvent(eventName, timeout);
 	}
+
+	/// <summary>
+	/// Define which moments to capture. Must be called during a tournament.
+	/// On calling captureMoment() during a tournament, 
+	/// no other moments will captured by Nextpeer during the same tournament.
+	/// </summary>
+	public static void CaptureMoment()
+	{
+		getINextpeerInstance().CaptureMoment();
+	}
 	
 	#region Tournament white/black lists
 	
