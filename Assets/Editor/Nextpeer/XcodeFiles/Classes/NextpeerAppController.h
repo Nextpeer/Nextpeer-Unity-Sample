@@ -22,6 +22,8 @@ AppController
 // DelegatesHandler accessor for bindings
 + (UnityNextpeerDelegate*) GetNextpeerDelegate;
 + (UnityTournamentDelegate*) GetTournamentDelegate;
++ (id<NPFacebookBridgeDelegate>) GetFacebookBridgeDelegate;
++ (void) SetFacebookBridgeDelegate:(id<NPFacebookBridgeDelegate>)delegate;
 
 +(void)MarkNextpeerAsInitialised;
 

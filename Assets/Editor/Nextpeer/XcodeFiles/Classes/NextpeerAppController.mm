@@ -7,6 +7,7 @@
 // external accessors which have to be pInvoked)
 static UnityNextpeerDelegate* NextpeerDelegate = nil;
 static UnityTournamentDelegate* TournamentDelegate = nil;
+static id<NPFacebookBridgeDelegate> FacebookBridgeDelegate = nil;
 
 // Memorise Launch options for handling notifications
 static NSDictionary* NPLaunchOptions = nil;
@@ -30,6 +31,15 @@ static BOOL IsNextpeerInitialised = NO;
     return TournamentDelegate;
 }
 
++ (id<NPFacebookBridgeDelegate>) GetFacebookBridgeDelegate
+{
+	return FacebookBridgeDelegate;
+}
+
++ (void) SetFacebookBridgeDelegate:(id<NPFacebookBridgeDelegate>)delegate
+{
+	FacebookBridgeDelegate = delegate;
+}
 
 +(void)MarkNextpeerAsInitialised
 {

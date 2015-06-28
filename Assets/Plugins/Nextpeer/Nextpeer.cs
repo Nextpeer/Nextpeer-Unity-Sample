@@ -416,7 +416,7 @@ public enum NPSynchronizedEventFireReason
 	/// <summary>
 	/// All participants have registered for the event.
 	/// </summary>
-	AllReached = 0,
+	AllReached = 1,
 	
 	/// <summary>
 	/// The registration timeout was reached before all participants registered for the event (at least one participant didn't register for the event).
