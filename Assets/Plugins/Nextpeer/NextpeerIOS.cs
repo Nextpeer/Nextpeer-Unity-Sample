@@ -231,6 +231,11 @@ public class NextpeerIOS : INextpeer
 	{
 		_NPRegisterToSynchronizedEvent(eventName, timeout.TotalSeconds);
 	}
+
+	public void CaptureMoment()
+	{
+		_NPCaptureMoment();
+	}
 	
 	public bool ConsumeSyncEventInfo(string syncEventInfoId, ref string eventName, ref NPSynchronizedEventFireReason fireReason)
 	{
@@ -365,6 +370,8 @@ public class NextpeerIOS : INextpeer
     private static extern void _NPReportControlledTournamentOverWithScore(UInt32 score);
 	[DllImport("__Internal")]
 	private static extern void _NPRegisterToSynchronizedEvent(String eventName, double timeout);
+	[DllImport("__Internal")]
+	private static extern void _NPCaptureMoment();
 	
 	  // In memory data access dedicated methods
      // Tournament --------------------------------------------------------

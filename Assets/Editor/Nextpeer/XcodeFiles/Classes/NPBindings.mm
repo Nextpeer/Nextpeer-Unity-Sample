@@ -120,6 +120,7 @@ extern "C" {
         NPDelegatesContainer* delegatesContainer = [NPDelegatesContainer new];
         delegatesContainer.nextpeerDelegate = [NextpeerAppController GetNextpeerDelegate];
         delegatesContainer.tournamentDelegate = [NextpeerAppController GetTournamentDelegate];
+		delegatesContainer.facebookBridgeDelegate = [NextpeerAppController GetFacebookBridgeDelegate];
         
         NSDictionary* settingsDict = nil;
         if (settings != NULL)
@@ -226,5 +227,10 @@ extern "C" {
     void _NPEnableRankingDisplay(bool enableRankingDisplay)
     {
         [Nextpeer enableRankingDisplay:enableRankingDisplay];
+    }
+    
+    void _NPCaptureMoment()
+    {
+        [Nextpeer captureMoment];
     }
 }

@@ -416,7 +416,7 @@ public enum NPSynchronizedEventFireReason
 	/// <summary>
 	/// All participants have registered for the event.
 	/// </summary>
-	AllReached = 0,
+	AllReached = 1,
 	
 	/// <summary>
 	/// The registration timeout was reached before all participants registered for the event (at least one participant didn't register for the event).
@@ -713,6 +713,16 @@ public class Nextpeer : MonoBehaviour
 	public static void RegisterToSynchronizedEvent(string eventName, TimeSpan timeout)
 	{
 		getINextpeerInstance().RegisterToSyncEvent(eventName, timeout);
+	}
+
+	/// <summary>
+	/// Define which moments to capture. Must be called during a tournament.
+	/// On calling captureMoment() during a tournament, 
+	/// no other moments will captured by Nextpeer during the same tournament.
+	/// </summary>
+	public static void CaptureMoment()
+	{
+		getINextpeerInstance().CaptureMoment();
 	}
 	
 	#region Tournament white/black lists
