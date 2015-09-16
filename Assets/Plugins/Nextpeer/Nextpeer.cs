@@ -24,12 +24,12 @@ public struct NPGamePlayerContainer
 	/// The player identifier (also see NPTournamentPlayer.PlayerId).
 	/// </summary>
 	public String PlayerId;
-	
+
 	/// <summary>
 	/// The name of the player.
 	/// </summary>
     public String PlayerName;
-	
+
 	/// <summary>
 	/// The player image URL.
 	/// </summary>
@@ -45,22 +45,22 @@ public struct NPTournamentPlayer
 	/// The player name.
 	/// </summary>
 	public String PlayerName;
-	
+
 	/// <summary>
 	/// A unique and persistent identifier for the player in Nextpeer.
 	/// </summary>
 	public String PlayerId;
-	
+
 	/// <summary>
 	/// The player's avatar image URL.
 	/// </summary>
 	public String PlayerImageUrl;
-	
+
 	/// <summary>
 	/// A flag specifying if the player is a bot (a recording of a previous game) or a real player.
 	/// </summary>
 	public Boolean PlayerIsBot;
-	
+
 	/// <summary>
 	/// A flag specifying if the struct represents the current user.
 	/// </summary>
@@ -76,17 +76,17 @@ public struct NPTournamentPlayerResults
 	/// The player for which this object reports the results.
 	/// </summary>
 	public NPTournamentPlayer Player;
-	
+
 	/// <summary>
 	/// Marks if the player is still in the game.
 	/// </summary>
 	public Boolean IsStillPlaying;
-	
+
 	/// <summary>
 	/// Marks if the player forfeit the tournament. This can happen, for example, when the player exits mid-tournament in a timed tournament.
 	/// </summary>
 	public Boolean DidForfeit;
-	
+
 	/// <summary>
 	/// The score of the player.
 	/// </summary>
@@ -114,22 +114,22 @@ public abstract class NPTournamentCustomMessageBase
 	/// The name of the player.
 	/// </summary>
     public String PlayerName { get; internal set; }
-	
+
 	/// <summary>
 	/// The player's profile image URL.
 	/// </summary>
     public String ProfileImageUrl { get; internal set; }
-	
+
 	/// <summary>
 	/// The custom message (passed as a byte buffer).
 	/// </summary>
     public byte[] Message { get; internal set; }
-	
+
 	/// <summary>
 	/// A unique player identifier for the current game.
 	/// </summary>
 	public String PlayerID { get; internal set; }
-	
+
 	/// <summary>
 	/// Boolean value that indicates if this message came form a bot recording or a real-life player.
 	/// </summary>
@@ -149,73 +149,73 @@ public class NPTournamentCustomMessageContainer : NPTournamentCustomMessageBase
 /// </summary>
 public class NPTournamentUnreliableCustomMessageContainer : NPTournamentCustomMessageBase
 {
-	
+
 }
 
 /// <summary>
 /// Your application's display name. Used as the game title (welcome screen, tournament selector, etc.).
-/// 
+///
 /// If set, will override the display name value from the developer dashboard.
 /// </summary>
 public struct NPGameSettings
 {
 	/// <summary>
 	/// Defines the in-game notification position.
-	/// 
+	///
 	/// Default: NPNotificationPosition_TOP
 	/// </summary>
 	public NPNotificationPosition? NotificationPosition;
-	
+
 	/// <summary>
 	/// Specifies the style for the in-game ranking display.
-	/// 
+	///
 	/// Default: NPRankingDisplayList
 	/// </summary>
 	public NPRankingDisplayStyle? RankingDisplayStyle;
 
 	/// <summary>
 	/// Specifies the alignment of the in-game ranking display. This setting only has effect if the ranking display style is set to NPRankingDisplayList.
-	/// 
+	///
 	/// Default: NPRankingDisplayAlignmentHorizontal
 	/// </summary>
 	public NPRankingDisplayAlignment? RankingDisplayAlignment;
 
-#if UNITY_IPHONE	
+#if UNITY_IPHONE
 	/// <summary>
 	/// Defines what orientation the game notification should appear. The notification system does not auto rotate.
-	/// 
+	///
 	/// Default: UIInterfaceOrientationPortrait
 	/// </summary>
     public NPUIInterfaceOrientation? NotificationOrientation;
-	
+
 	/// <summary>
 	/// Defines if Nextpeer should observe notification orientation change and adjust the in-game notifications according to changes.
 	/// For example, if your game supports Landcape orientation, Default UIInterfaceOrientationLandscapeRight, you can verify that even if the user will
 	/// change the orientation (in-game) to UIInterfaceOrientationLandscapeLeft the notification orientation will adjust it self.
-	/// 
+	///
 	/// Default: false
 	/// </summary>
     public Boolean? ObserveNotificationOrientationChange;
-	
+
 	/// <summary>
 	/// Defines if Nextpeer should observe device orientation change and adjust the dashboard according to changes.
 	/// Nextpeer will keep the transformation in the main orientation. For example if you game supports landscape orientation,
 	/// Nextpeer will switch between LandscapeLeft to LandscapeRight (but will not switch to portrait).
-	/// 
+	///
 	/// Default: false
 	/// </summary>
     public Boolean? SupportsDashboardRotation;
-	
+
 	/// <summary>
 	/// Defines the orientation in which the Nextpeer dashboard will be first launched. If not specified, Nextpeer will try to orient itself according to the status bar orientation.
-	/// 
+	///
 	/// Default: [UIApplication sharedApplication].statusBarOrientation
 	/// </summary>
 	public NPUIInterfaceOrientation? InitialDashboardOrientation;
 
 	/// <summary>
 	/// Specifies the style of the animation of the in-game ranking display. This setting can be set to optimise performance.
-	/// 
+	///
 	/// Default: NPRankingDisplayAnimationOptimised
 	/// </summary>
 	public NPRankingDisplayAnimationStyle? RankingDisplayAnimationStyle;
@@ -232,29 +232,29 @@ public struct NPTournamentStartDataContainer
 	/// You can find the UUID in the developer dashboard.
 	/// </summary>
     public String TournamentUUID;
-	
+
 	/// <summary>
 	/// The tournament display name.
 	/// </summary>
     public String TournamentName;
-	
+
 	/// <summary>
 	/// A random seed generated for this tournament. All players within the same tournament
 	/// receive the same seed from the tournament. Can be used for level generation, to ensure
 	/// all players play the same level in a specific game.
 	/// </summary>
     public UInt32 TournamentRandomSeed;
-	
+
 	/// <summary>
 	/// The number of players that started this tournament. Includes the current player.
 	/// </summary>
 	public UInt32 TournamentNumberOfPlayers;
-	
+
 	/// <summary>
 	/// The current player.
 	/// </summary>
 	public NPTournamentPlayer CurrentPlayer;
-	
+
 	/// <summary>
 	/// The opponents.
 	/// </summary>
@@ -271,18 +271,18 @@ public struct NPTournamentEndDataContainer
 	/// You can find the UUID in the developer dashboard.
 	/// </summary>
     public String TournamentUUID;
-	
+
 	/// <summary>
 	/// The name of the player.
 	/// </summary>
     public String PlayerName;
-	
+
 	/// <summary>
 	/// The number of players in the tournament.
 	/// </summary>
     public UInt32 TournamentTotalPlayers;
 
-#if UNITY_IPHONE	
+#if UNITY_IPHONE
 	/// <summary>
 	/// The player rank in the tournament (where 1 means first, 1..tournamentTotalPlayers).
 	/// </summary>
@@ -318,7 +318,7 @@ public enum NPNotificationPosition
 	/// Rankings are shown in the top-center of the screen
 	/// </summary>
     NPNotificationPosition_TOP = 0,
-	
+
 	/// <summary>
 	/// Rankings are shown in the bottom-center of the screen
 	/// </summary>
@@ -328,27 +328,27 @@ public enum NPNotificationPosition
 	/// Rankings are shown in the top-left of the screen
 	/// </summary>
     NPNotificationPosition_TOP_LEFT,
-	
+
 	/// <summary>
 	/// Rankings are shown in the bottom-left of the screen
 	/// </summary>
     NPNotificationPosition_BOTTOM_LEFT,
-	
+
 	/// <summary>
 	/// Rankings are shown in the top-right of the screen
 	/// </summary>
     NPNotificationPosition_TOP_RIGHT,
-	
+
 	/// <summary>
 	/// Rankings are shown in the bottom-right of the screen
 	/// </summary>
     NPNotificationPosition_BOTTOM_RIGHT,
-	
+
 	/// <summary>
 	/// Rankings are shown in the middle-left of the screen
 	/// </summary>
 	NPNotificationPosition_LEFT,
-	
+
 	/// <summary>
 	/// Rankings are shown in the middle-right of the screen
 	/// </summary>
@@ -364,7 +364,7 @@ public enum NPRankingDisplayStyle
 	/// Displays the ranks as a list of 2 or 3 players, centered on the current player, who is flanked by the players immediately above and below him in rank.
 	/// </summary>
 	List = 0,
-	
+
 	/// <summary>
 	/// Displays only the current player's avatar, and a label which indicates the rank of the current player relative to all the tournament participants. Does not show any other player.
 	/// </summary>
@@ -380,12 +380,12 @@ public enum NPRankingDisplayAnimationStyle
 	/// Optimised animation, based on the current device. Older devices will have reduced animaiton, to prevent a negative impact on performance.
 	/// </summary>
 	Optimised = 0,
-	
+
 	/// <summary>
 	/// Full animation (on all devices). In some cases this may negatively affect performance, particularly on older devices.
 	/// </summary>
 	Full,
-	
+
 	/// <summary>
 	/// No animation (on all devices). Use this if testing shows that the optimised animation style negatively affects performance.
 	/// </summary>
@@ -401,7 +401,7 @@ public enum NPRankingDisplayAlignment
 	/// Horizontal alignment - avatars are aligned left-to-right.
 	/// </summary>
 	Horizontal = 0,
-	
+
 	/// <summary>
 	/// Vertical alignment - avatars are aligned top-down.
 	/// </summary>
@@ -417,12 +417,12 @@ public enum NPSynchronizedEventFireReason
 	/// All participants have registered for the event.
 	/// </summary>
 	AllReached = 1,
-	
+
 	/// <summary>
 	/// The registration timeout was reached before all participants registered for the event (at least one participant didn't register for the event).
 	/// </summary>
 	Timeout,
-	
+
 	/// <summary>
 	/// The synchronized event was already fired before the latest registration attempt was made.
 	/// </summary>
@@ -436,57 +436,57 @@ public class Nextpeer : MonoBehaviour
 	#region Public interface
 
 	private static Nextpeer Instance;
-	
+
 	#region Events
-	
+
 	// Events corresponding to NextpeerDelegate:
-	
+
 	/// <summary>
 	/// Occurs before the tournament will start (prior the dismissing the dashboard).
 	/// </summary>
 	public static event Action<NPTournamentStartDataContainer> WillTournamentStartWithDetails;
-	
+
 	/// <summary>
 	/// Occurs when a tournament is about to start.
 	/// The tournament start container will give you some details on the tournament which is about to be played.
 	/// For example the tournament UUID, name and time.
 	/// </summary>
 	public static event Action<NPTournamentStartDataContainer> DidTournamentStartWithDetails;
-	
+
 	/// <summary>
 	/// Occurs when the current tournament has finished.
 	/// In here you can place some cleanup code. For example,
 	/// you can use this method to recycle the game scene.
 	/// </summary>
 	public static event Action DidTournamentEnd;
-	
+
 	/// <summary>
 	/// Occurs immediately before the Nextpeer dashboard will appear. You should stop your animations here.
 	/// </summary>
 	public static event Action DashboardWillAppear;
-	
+
 	/// <summary>
 	/// Occurs when the dashboard has finished its animated transition and is now fully visible.
 	/// </summary>
 	public static event Action DashboardDidAppear;
-	
+
 	/// <summary>
 	/// Occurs immediately before the dashboard will disappear.
 	/// </summary>
 	public static event Action DashboardWillDisappear;
-	
+
 	/// <summary>
 	/// Occurs immediately after the dashboard will disappear.
 	/// </summary>
 	public static event Action DashboardDidDisappear;
-	
+
 	/// <summary>
 	/// Occurs when the player closes Nextpeer's dashboard and returns to the game.
 	/// </summary>
 	public static event Action DashboardDidReturnToGame;
-	
+
 	// Events corresponding to TournamentDelegate:
-	
+
 	/// <summary>
 	/// Occurs when Nextpeer has received a buffer from another player via the reliable communication channel.
 	/// You can use these buffers to create custom notifications and events while engaging the other players
@@ -494,24 +494,24 @@ public class Nextpeer : MonoBehaviour
 	/// as the message being sent.
 	/// </summary>
 	public static event Action<NPTournamentCustomMessageContainer> DidReceiveTournamentCustomMessage;
-	
+
 	/// <summary>
 	/// Occurs when Nextpeer has received a buffer from another player via the unreliable communication channel.
 	/// </summary>
 	public static event Action<NPTournamentUnreliableCustomMessageContainer> DidReceiveUnreliableTournamentCustomMessage;
-	
+
 	/// <summary>
 	/// Occurs when the current tournament has finished and the platform gathered the information from all the players.
 	/// It might take some time between firing the Nextpeer.DidTournamentEnd event and this event,
 	/// as the platform needs to wait for the last result from each player.
 	/// </summary>
 	public static event Action<NPTournamentEndDataContainer> DidReceiveTournamentResults;
-	
+
 	/// <summary>
 	/// Occurs when a synchronized event was fired.
-	/// 
+	///
 	/// The event will only be fired if you registered for it beforehand with RegisterToSynchronizedEvent().
-	/// 
+	///
 	/// The first parameter of the Action is the synchronized event name, the second is the reason that the event was fired.
 	/// </summary>
 	public static event Action<string, NPSynchronizedEventFireReason> DidReceiveSynchronizedEvent;
@@ -522,20 +522,20 @@ public class Nextpeer : MonoBehaviour
 	/// Occurs when a tournament status is reported. A tournament status includes information
 	/// regarding all the players in the tournament - their ranks, who is still playing, their names, IDs, avatar images, etc.
 	/// This information can be used to, for example, generate custom ranking notifications.
-	/// 
+	///
 	/// The rate of tournament status updates is approximately one per second.
 	/// </summary>
 	public static event Action<NPTournamentStatusInfo> DidReceiveTournamentStatus;
 
 	#endregion
-	
+
 	#region Methods
-	
+
 	#region General
-	
+
 	/// <summary>
 	/// Call this method to verify if the current runtime environment supports Nextpeer requirements.
-	/// 
+	///
 	/// Minimum iOS version supported by the SDK is iOS 4.3. Initialising Nextpeer when it's not supported will display an error.
 	/// To disable the error, call Nextpeer.SetNextpeerNotSupportedShouldShowCustomErrors() BEFORE calling Nextpeer.Init.
 	/// </summary>
@@ -547,10 +547,10 @@ public class Nextpeer : MonoBehaviour
 #if UNITY_EDITOR
 		return false;
 #endif
-		
+
 		return getINextpeerInstance().IsNextpeerSupported();
 	}
-	
+
 	/// <returns>
 	/// The release Version String of the Nextpeer client library in use.
 	/// </returns>
@@ -558,7 +558,7 @@ public class Nextpeer : MonoBehaviour
     {
         return getINextpeerInstance().ReleaseVersionString();
     }
-	
+
 	/// <summary>
 	/// Initialise Nextpeer. You should call this method as early as possible within your game.
 	/// </summary>
@@ -578,8 +578,8 @@ public class Nextpeer : MonoBehaviour
 		//to handle cases of users which created it manually (Probably before NU-44 was fixed).
 		Instance = (Nextpeer)FindObjectOfType(typeof(Nextpeer));
 		if (Instance == null)
-		{ 	
-			Instance = (new GameObject("Nextpeer")).AddComponent<Nextpeer>(); 
+		{
+			Instance = (new GameObject("Nextpeer")).AddComponent<Nextpeer>();
 		}
 		//-------------------------------//
 
@@ -587,15 +587,15 @@ public class Nextpeer : MonoBehaviour
 		{
 			return;
 		}
-		
+
 		getINextpeerInstance().Init (GameKey, Settings);
-		
+
 		_isInitialised = true;
     }
-	
+
 	/// <summary>
 	/// Launches the Nextpeer dashboard.
-	/// 
+	///
 	/// If Nextpeer.IsNextpeerSupported returns NO this method will do nothing.
 	/// </summary>
 	public static void LaunchDashboard()
@@ -604,14 +604,14 @@ public class Nextpeer : MonoBehaviour
 		EditorUtility.DisplayDialog("Nextpeer error", "Nextpeer not supported in the Editor, please use a device or a simulator/emulator.", "OK");
 		return;
 #endif
-		
+
         getINextpeerInstance().LaunchDashboard();
     }
-	
+
 	#endregion
-	
+
 	#region Tournament
-	
+
 	/// <summary>
 	/// Call this method to check if a tournament is running at the moment.
 	/// </summary>
@@ -622,7 +622,7 @@ public class Nextpeer : MonoBehaviour
     {
         return getINextpeerInstance().IsCurrentlyInTournament();
     }
-	
+
 	/// <summary>
 	/// Call this method to report the current score for the tournament. This allows Nextpeer to send
  	/// various notifications about the players' scores.
@@ -634,7 +634,7 @@ public class Nextpeer : MonoBehaviour
     {
         getINextpeerInstance().ReportScoreForCurrentTournament(score);
     }
-	
+
 	/// <summary>
 	/// Call this method when your game manages the current tournament and the player just died (a.k.a. 'Last Man Standing').
 	/// Nextpeer will call the Nextpeer.DidTournamentEnd event after reporting the last score.
@@ -648,7 +648,7 @@ public class Nextpeer : MonoBehaviour
     {
         getINextpeerInstance().ReportControlledTournamentOverWithScore(score);
     }
-	
+
 	/// <summary>
 	/// Call this method when the user wishes to exit the current tournament prematurely.
 	/// Note that this will count as a loss for the player, and will not re-launch the Nextpeer dashboard.
@@ -662,11 +662,11 @@ public class Nextpeer : MonoBehaviour
 
 	/// <summary>
 	/// This method is used to push a byte buffer to the other players over a reliable communication channel.
-	/// 
+	///
 	/// This can be used to create custom notifications or some other interactive mechanism
 	/// that incorporates the other players. The buffer will be sent to the other players and will fire the
 	/// Nextpeer.DidReceiveTournamentCustomMessage event in their game.
-	/// 
+	///
 	/// For best performance, make sure not to call this method too frequently, and don't send large buffers.
 	/// Otherwise, the packets will be throttled (you will receive a warning about this in the console).
 	/// </summary>
@@ -677,13 +677,13 @@ public class Nextpeer : MonoBehaviour
     {
         getINextpeerInstance().PushDataToOtherPlayers(data);
     }
-	
+
 	/// <summary>
 	/// This method is used to push a byte buffer to the other players through an unreliable communication channel.
 	/// While order will be preserved, packets may be dropped. The advantage of this channel over the reliable channel is its low latency.
-	/// 
+	///
 	/// This can be used to send information that is not critical, but becomes stale very fast, such as other player's positions.
-	/// 
+	///
 	/// The payload of this method is limited to about 1300 bytes.
 	/// </summary>
 	/// <param name='data'>
@@ -717,19 +717,19 @@ public class Nextpeer : MonoBehaviour
 
 	/// <summary>
 	/// Define which moments to capture. Must be called during a tournament.
-	/// On calling captureMoment() during a tournament, 
+	/// On calling captureMoment() during a tournament,
 	/// no other moments will captured by Nextpeer during the same tournament.
 	/// </summary>
 	public static void CaptureMoment()
 	{
 		getINextpeerInstance().CaptureMoment();
 	}
-	
+
 	#region Tournament white/black lists
-	
+
 	/// <summary>
 	/// Adds a tournament to the whitelist of accepted tournaments. All tournaments not in the whitelist will be ignored by Nextpeer.
-	/// 
+	///
 	/// If no whitelist or blacklist is set, all tournaments will be accepted.
 	/// </summary>
 	/// <param name='tournamentId'>
@@ -739,7 +739,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().AddWhitelistTournament(tournamentId);
 	}
-	
+
 	/// <summary>
 	/// Removes the tournament from the whitelist.
 	/// </summary>
@@ -750,7 +750,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RemoveWhitelistTournament(tournamentId);
 	}
-	
+
 	/// <summary>
 	/// Clears the tournament whitelist.
 	/// </summary>
@@ -758,10 +758,10 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().ClearTournamentWhitelist();
 	}
-	
+
 	/// <summary>
 	/// Adds a tournament to the blacklist of rejected tournaments. All tournaments not in the blacklist will be accepted by Nextpeer.
-	/// 
+	///
 	/// If no whitelist or blacklist is set, all tournaments will be accepted.
 	/// </summary>
 	/// <param name='tournamentId'>
@@ -771,7 +771,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().AddBlacklistTournament(tournamentId);
 	}
-	
+
 	/// <summary>
 	/// Removes the tournament from the blacklist.
 	/// </summary>
@@ -782,7 +782,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RemoveBlacklistTournament(tournamentId);
 	}
-	
+
 	/// <summary>
 	/// Clears the tournament blacklist.
 	/// </summary>
@@ -790,15 +790,15 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().ClearTournamentBlacklist();
 	}
-	
+
 	#endregion
-	
+
 	#endregion
 
 	#region Recording manipulation
-	
+
 	/// <summary>
-	/// Call this method to change the score of the given recording. 
+	/// Call this method to change the score of the given recording.
 	/// The modifier can be negative or positive and thus points will either be added or reduced from the recording’s score.
 	/// </summary>
 	/// <param name='userId'>
@@ -811,7 +811,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().ReportScoreModifier(userId, scoreModifier);
 	}
-	
+
 	/// <summary>
 	///	Call this method to fast forward the given recording by timeDelta milliseconds.
 	/// </summary>
@@ -825,7 +825,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RequestFastForwardRecording(userId, timeDelta);
 	}
-	
+
 	/// <summary>
 	///	Call this method to pause the given recording.
 	/// </summary>
@@ -836,7 +836,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RequestPauseRecording(userId);
 	}
-	
+
 	/// <summary>
 	///	Call this method to resume the given recording.
 	/// </summary>
@@ -847,7 +847,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RequestResumeRecording(userId);
 	}
-	
+
 	/// <summary>
 	///	Call this method to rewind the given recording by timeDelta milliseconds.
 	/// </summary>
@@ -861,7 +861,7 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RequestRewindRecording(userId, timeDelta);
 	}
-	
+
 	/// <summary>
 	///	Call this method to stop the given recording
 	/// </summary>
@@ -872,9 +872,9 @@ public class Nextpeer : MonoBehaviour
 	{
 		getINextpeerInstance().RequestStopRecording(userId);
 	}
-	
+
 	#endregion
-	
+
 	#region Social
 
 	/// <summary>
@@ -889,13 +889,13 @@ public class Nextpeer : MonoBehaviour
     }
 
 	#endregion
-	
+
 	#region Configuration
 
 	/// <summary>
 	/// Call this method to enable or disable the in-game ranking display during a tournament.
 	/// You can change this setting during a tournament (making the ranking display appear and disappear), but will not be animated.
-	/// 
+	///
 	/// Note: must only be called after Nextpeer's initailisation.
 	/// </summary>
 	/// <param name='enableRankingDisplay'>
@@ -906,12 +906,12 @@ public class Nextpeer : MonoBehaviour
 		getINextpeerInstance().EnableRankingDisplay(enableRankingDisplay);
 	}
 
-#if UNITY_IPHONE	
+#if UNITY_IPHONE
 	/// <summary>
 	/// You can use this method to set if Nextpeer will show an alert view if it is not supported on the current device.
-	/// 
+	///
 	/// Default is <c>false</c> (Nextpeer WILL display an error).
-	/// 
+	///
 	/// If you want to set this setting, call this method BEFORE calling Nextpeer.Init.
 	/// </summary>
 	/// <param name='ShowError'>
@@ -926,16 +926,16 @@ public class Nextpeer : MonoBehaviour
 	#endregion
 
 	#endregion
-	
+
 	#endregion
-	
+
 	#region Private interface
-	
+
 	private static INextpeer _nextpeer;
 	private static bool _isInitialised = false;
 
 	private static INextpeer getINextpeerInstance(){
-		
+
 		if (null == _nextpeer) {
 			#if UNITY_ANDROID
 			_nextpeer = new NextpeerAndroid ();
@@ -943,10 +943,10 @@ public class Nextpeer : MonoBehaviour
 			_nextpeer = new NextpeerIOS();
 			#endif
 		}
-		
+
 		return _nextpeer;
 	}
-	
+
 	void Awake()
 	{
 		//Here we change the gameObject name to "Nextpeer" even though it named on creation, for backward compatibility -
@@ -954,14 +954,14 @@ public class Nextpeer : MonoBehaviour
 		gameObject.name = this.GetType().ToString();
 		DontDestroyOnLoad( this );
 	}
-	
+
 #if UNITY_ANDROID
 	void OnApplicationPause(bool pause)
 	{
 #if UNITY_EDITOR
 		return;
 #endif
-		
+
 		if (!pause)
 		{
 			((NextpeerAndroid)getINextpeerInstance()).onStart();
@@ -973,21 +973,21 @@ public class Nextpeer : MonoBehaviour
 				);
 		}
 	}
-	
+
 	void OnApplicationQuit()
 	{
 #if UNITY_EDITOR
 		return;
 #endif
-		
+
 		((NextpeerAndroid)getINextpeerInstance()).onStop(
 				() => { DidTournamentEndHandler(); }
 				);
 	}
 #endif
-	
+
 	#region Message handlers
-	
+
 	private void DidTournamentStartWithDetailsHandler()
 	{
 		NPTournamentStartDataContainer _npTournamentStartDataContainer = getINextpeerInstance().GetTournamentStartData();
@@ -1001,7 +1001,7 @@ public class Nextpeer : MonoBehaviour
 			DidTournamentStartWithDetails(_npTournamentStartDataContainer);
 		}
 	}
-	
+
 	private void DidTournamentEndHandler()
 	{
 		if (DidTournamentEnd != null)
@@ -1009,7 +1009,7 @@ public class Nextpeer : MonoBehaviour
 			DidTournamentEnd();
 		}
 	}
-	
+
 	private void DashboardWillAppearHandler()
 	{
 		if (DashboardWillAppear != null)
@@ -1017,7 +1017,7 @@ public class Nextpeer : MonoBehaviour
 			DashboardWillAppear();
 		}
 	}
-	
+
 	private void DashboardDidAppearHandler()
 	{
 		if (DashboardDidAppear != null)
@@ -1025,7 +1025,7 @@ public class Nextpeer : MonoBehaviour
 			DashboardDidAppear();
 		}
 	}
-	
+
 	private void DashboardWillDisappearHandler()
 	{
 		if (DashboardWillDisappear != null)
@@ -1033,7 +1033,7 @@ public class Nextpeer : MonoBehaviour
 			DashboardWillDisappear();
 		}
 	}
-	
+
 	private void DashboardDidDisappearHandler()
 	{
 		if (DashboardDidDisappear != null)
@@ -1041,7 +1041,7 @@ public class Nextpeer : MonoBehaviour
 			DashboardDidDisappear();
 		}
 	}
-	
+
 	private void DashboardDidReturnToGameHandler()
 	{
 		if (DashboardDidReturnToGame != null)
@@ -1049,13 +1049,13 @@ public class Nextpeer : MonoBehaviour
 			DashboardDidReturnToGame();
 		}
 	}
-	
+
 	private void DidReceiveTournamentCustomMessageHandler(string messageId)
 	{
 		if (DidReceiveTournamentCustomMessage != null)
 		{
 			NPTournamentCustomMessageContainer message = getINextpeerInstance().ConsumeReliableCustomMessage(messageId);
-		
+
 			if (message != null)
 			{
 				DidReceiveTournamentCustomMessage(message);
@@ -1066,13 +1066,13 @@ public class Nextpeer : MonoBehaviour
 			getINextpeerInstance().RemoveStoredObjectWithId(messageId);
 		}
 	}
-	
+
 	private void DidReceiveUnreliableTournamentCustomMessageHandler(string messageId)
 	{
 		if (DidReceiveUnreliableTournamentCustomMessage != null)
 		{
 			NPTournamentUnreliableCustomMessageContainer message = getINextpeerInstance().ConsumeUnreliableCustomMessage(messageId);
-		
+
 			if (message != null)
 			{
 				DidReceiveUnreliableTournamentCustomMessage(message);
@@ -1089,7 +1089,7 @@ public class Nextpeer : MonoBehaviour
 		if (DidReceiveTournamentStatus != null)
 		{
 			NPTournamentStatusInfo? status = getINextpeerInstance().ConsumeTournamentStatusInfo(objectId);
-			
+
 			if (status != null)
 			{
 				DidReceiveTournamentStatus(status.Value);
@@ -1100,7 +1100,7 @@ public class Nextpeer : MonoBehaviour
 			getINextpeerInstance().RemoveStoredObjectWithId(objectId);
 		}
 	}
-	
+
 	private void DidReceiveSynchronizedEventHandler(string objectId)
 	{
 		if (DidReceiveSynchronizedEvent != null)
@@ -1117,7 +1117,7 @@ public class Nextpeer : MonoBehaviour
 			getINextpeerInstance().RemoveStoredObjectWithId(objectId);
 		}
 	}
-	
+
 #if UNITY_ANDROID
 	private void DidReceiveTournamentResultsHandler()
 	{
@@ -1129,32 +1129,21 @@ public class Nextpeer : MonoBehaviour
 #endif
 
 #if UNITY_ANDROID
-	private IEnumerator RequestNextFrameNotifications()
+	private void RequestNextFrameNotifications()
     {
-        Debug.Log("Frame notifications requested, waiting for end of frame");
-        yield return new WaitForEndOfFrame();
-
-		bool fbBound = getINextpeerInstance().FrameStart(Screen.width, Screen.height);
-
-		if (fbBound) {
-			foreach (Camera cam in Camera.allCameras) {
-				if (!cam.enabled) {
-					Debug.Log ("Skipping disabled camera " + cam.name + " (depth=" + cam.depth + ")");
-				} else if (cam.targetTexture != null) {
-					Debug.Log ("Skipping off-screen camera " + cam.name + " (depth=" + cam.depth + ")");
-				} else {
-					Debug.Log ("Rendering camera " + cam.name + " (depth=" + cam.depth + ")");
-					cam.Render ();
-				}
-			}
+		Camera mainCamera = Camera.main;
+		if (mainCamera != null) {
+			Debug.Log("Requested screenshot - attaching to camera " + mainCamera.name);
+			Camera.main.gameObject.AddComponent("NextpeerAndroidScreenshotHandler");
 		}
-
-		getINextpeerInstance().FrameEnd();
+		else {
+			Debug.LogError("No main camera - failed to take screenshot");
+		}
     }
 #endif
-	
+
 	#endregion
-	
+
 	#endregion
 }
 

@@ -17,12 +17,6 @@
     <string name="np__string_service_tab_bar_stream_button_key">tabBar.stream.button</string>
     
     <!--suppress Typos -->
-    <string name="np__string_service_tab_bar_buddies_button_key">tabBar.buddies.button</string>
-    <string name="np__string_service_tab_bar_challenges_button_key">tabBar.challenges.button</string>
-    <string name="np__string_service_tab_bar_leaderboards_button_key">tabBar.leaderboards.button</string>
-    <string name="np__string_service_tab_bar_more_button_key">tabBar.more.button</string>
-    <string name="np__string_service_tab_bar_stream_button_key">tabBar.stream.button</string>
-    
     <string name="np__string_service_general_button_ok_key">general.ok.button</string>
     <string name="np__string_service_general_button_cancel_key">general.cancel.button</string>
     <string name="np__string_service_default_user_name_key">general.player.nameRepresentationWhenNotSignIn.label</string>

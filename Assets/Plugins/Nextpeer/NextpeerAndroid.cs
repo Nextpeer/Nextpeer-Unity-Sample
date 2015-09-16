@@ -135,6 +135,9 @@ public class NextpeerAndroid : INextpeer
 
 			_nextpeer.CallStatic("initialize", GameKey, javaSettings);
 		}
+
+		// Force Unity to initialize our native plugin
+		NextpeerAndroidScreenshotHandler.SetScreenSize (Screen.width, Screen.height);
 	}
 
 	public void LaunchDashboard()
@@ -410,16 +413,6 @@ public class NextpeerAndroid : INextpeer
 	public void RequestStopRecording(String userId){
 		_nextpeer.CallStatic("requestStopRecording", userId);		
 	}
-
-    public bool FrameStart(int width, int height)
-    {
-		return _nextpeer.CallStatic<bool>("frameStart", width, height);
-    }
-        
-	public void FrameEnd()
-    {
-		_nextpeer.CallStatic("frameEnd");
-    }
 }
 
 #endif
